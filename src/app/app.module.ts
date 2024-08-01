@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { MatSelectModule } from '@angular/material/select';
-import { MatGridListModule } from '@angular/material/grid-list';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { AppComponent } from './app.component';
@@ -11,11 +10,11 @@ import { PiaComponent } from './pia/pia.component';
 import { OnboardingComponent } from './onboarding/onboarding.component';
 import { ReportingComponent } from './reporting/reporting.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @NgModule({
   declarations: [
     AppComponent,
-    DashboardComponent,
     TracingComponent,
     PiaComponent,
     OnboardingComponent,
@@ -24,9 +23,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    DashboardModule,
     MatSelectModule,
-    MatGridListModule,
-    MatTabsModule
+    MatTabsModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

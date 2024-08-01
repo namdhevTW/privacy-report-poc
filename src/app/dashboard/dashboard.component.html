@@ -1,6 +1,45 @@
-<div class="grid grid-cols-2 gap-4">
-  <div>
+<div class="grid grid-cols-6 gap-4">
+  <div class="col-span-3">
     <label for="roleControl" class="text-gray-500 font-bold">Role: {{ displayFriendlyRole() }}</label>
+  </div>
+  <div class="col-span-3 ml-auto">
+    <!-- Filter icon -->
+    <a href="#" (click)="toggleFilters()" *ngIf="!displayFilters">
+      <mat-icon>filter_list</mat-icon>
+    </a>
+    <div *ngIf="displayFilters" class="flex justify-between items-center">
+      <!-- State Dropdown -->
+      <label for="stateControl" class="text-gray-500 font-bold pr-2">State:</label>
+      <select id="stateControl" class="border border-gray-300 rounded-md p-2 mr-2">
+        <option value="all">All</option>
+        <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+      </select>
+
+      <!-- Service Dropdown -->
+      <label for="serviceControl" class="text-gray-500 font-bold pr-2">Service:</label>
+      <select id="serviceControl" class="border border-gray-300 rounded-md p-2 mr-2">
+        <option value="all">All</option>
+        <option *ngFor="let service of services" [value]="service">{{ service }}</option>
+      </select>
+
+      <mat-form-field>
+        <mat-label>Enter a date range</mat-label>
+        <mat-date-range-input [rangePicker]="picker">
+          <input matStartDate placeholder="Start date">
+          <input matEndDate placeholder="End date">
+        </mat-date-range-input>
+        <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+
+      <a href="#" (click)="toggleFilters()">
+        <mat-icon>filter_list_off</mat-icon>
+      </a>
+
+
+    </div>
+
   </div>
 
   <!-- DDL for services, states -->
@@ -11,13 +50,3 @@
   <!-- Consent based request numbers - total, processed & non-processed with service-owner selection and tracking capability -->
   <!-- SLA Compliance metrics - Total requests processed under SLA, Total requests that breached SLA - Admin only -->
 
-  <div>
-    <!-- Start Date Picker -->
-    <label for="startDateControl" class="text-gray-500 font-bold">Start Date:</label>
-    <input type="date" id="startDateControl" class="border border-gray-300 rounded-md p-2">
-
-    <!-- End Date Picker -->
-    <label for="endDateControl" class="text-gray-500 font-bold">End Date:</label>
-    <input type="date" id="endDateControl" class="border border-gray-300 rounded-md p-2">
-  </div>
-</div>

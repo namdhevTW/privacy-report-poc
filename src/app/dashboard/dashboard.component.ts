@@ -8,6 +8,12 @@ import { Component, Input } from '@angular/core';
 export class DashboardComponent {
   @Input() role = "admin";
 
+
+  displayFilters = false;
+  services = [];
+  states = [];
+
+
   displayFriendlyRole() {
     switch (this.role) {
       case "admin":
@@ -17,5 +23,9 @@ export class DashboardComponent {
       default:
         return "User";
     }
+  }
+
+  toggleFilters() {
+    this.displayFilters = !this.displayFilters;
   }
 }
