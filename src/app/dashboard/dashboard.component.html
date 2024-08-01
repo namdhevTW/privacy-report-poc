@@ -1,0 +1,23 @@
+<div class="grid grid-cols-2 gap-4">
+  <div>
+    <label for="roleControl" class="text-gray-500 font-bold">Role: {{ displayFriendlyRole() }}</label>
+  </div>
+
+  <!-- DDL for services, states -->
+  <!-- Date range selection with futuristic date invalidation -->
+  <!-- No data found container -->
+  <!-- Privacy metrics - total requests, processed, non-processed -->
+  <!-- Based on service owner selection, the privacy metrics should contain link to display tracking tab with appropriate service-owner pending requests -->
+  <!-- Consent based request numbers - total, processed & non-processed with service-owner selection and tracking capability -->
+  <!-- SLA Compliance metrics - Total requests processed under SLA, Total requests that breached SLA - Admin only -->
+
+  <div>
+    <!-- Start Date Picker -->
+    <label for="startDateControl" class="text-gray-500 font-bold">Start Date:</label>
+    <input type="date" id="startDateControl" class="border border-gray-300 rounded-md p-2">
+
+    <!-- End Date Picker -->
+    <label for="endDateControl" class="text-gray-500 font-bold">End Date:</label>
+    <input type="date" id="endDateControl" class="border border-gray-300 rounded-md p-2">
+  </div>
+</div>
