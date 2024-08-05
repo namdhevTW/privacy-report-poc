@@ -1,46 +1,129 @@
-<div class="grid grid-cols-6 gap-4">
+<div class="grid grid-cols-6 gap-8 items-center">
   <div class="col-span-3">
     <label for="roleControl" class="text-gray-500 font-bold">Role: {{ displayFriendlyRole() }}</label>
   </div>
   <div class="col-span-3 ml-auto">
-    <!-- Filter icon -->
-    <a href="#" (click)="toggleFilters()" *ngIf="!displayFilters">
-      <mat-icon>filter_list</mat-icon>
-    </a>
-    <div *ngIf="displayFilters" class="flex justify-between items-center">
-      <!-- State Dropdown -->
-      <label for="stateControl" class="text-gray-500 font-bold pr-2">State:</label>
-      <select id="stateControl" class="border border-gray-300 rounded-md p-2 mr-2" (change)="changeSelectedState($event)">
-        <option value="all">All</option>
-        <option *ngFor="let state of states" [value]="state.value">{{ state.label }}</option>
-      </select>
+    @if(displayFilters) {
+        <label for="stateControl" class="text-gray-500 font-bold pr-2">State:</label>
+        <select id="stateControl" class="border border-gray-300 rounded-md p-2 mr-2" (change)="changeSelectedState($event);applyFilter()">
+          <option value="all">All</option>
+          <option *ngFor="let state of states" [value]="state.value">{{ state.label }}</option>
+        </select>
 
-      <!-- Service Dropdown -->
-      <label for="serviceControl" class="text-gray-500 font-bold pr-2">Service:</label>
-      <select id="serviceControl" class="border border-gray-300 rounded-md p-2 mr-2" (change)="changeSelectedService($event)">
-        <option value="all">All</option>
-        <option *ngFor="let service of services" [value]="service.value">{{ service.label }}</option>
-      </select>
+        <!-- Service Dropdown -->
+        <label for="serviceControl" class="text-gray-500 font-bold pr-2">Service:</label>
+        <select id="serviceControl" class="border border-gray-300 rounded-md p-2 mr-2" (change)="changeSelectedService($event); applyFilter()">
+          <option value="all">All</option>
+          <option *ngFor="let service of services" [value]="service.value">{{ service.label }}</option>
+        </select>
 
-      <mat-form-field>
-        <mat-label>Enter a date range</mat-label>
-        <mat-date-range-input #dateRangePicker [rangePicker]="picker" [min]="minDate" [max]="maxDate">
-          <input matStartDate placeholder="Start date" [(ngModel)]="startDate">
-          <input matEndDate placeholder="End date" [(ngModel)]="endDate">
-        </mat-date-range-input>
-        <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
-        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-date-range-picker #picker></mat-date-range-picker>
-      </mat-form-field>
+        <!-- Start date selector without material with tailwind
+        <label for="startDateControl" class="text-gray-500 font-bold pr-2">Start Date:</label>
+        <input id="startDateControl" #startDateControl type="date" class="border border-gray-300 rounded-md p-2 mr-2 form-control" max="{{maxDate | date: 'dd/MM/yyyy'}}" [(ngModel)]="startDate" (change)="applyFilter()">
+        <span class="text-red-400" *ngIf="!isStartDateValid()">Error in start date selection</span> -->
 
-      <a href="#" (click)="toggleFilters()">
+        <mat-form-field class="px-2 bg-white">
+          <mat-label class="">Enter a date range</mat-label>
+          <mat-date-range-input #dateRangePicker [rangePicker]="picker" [min]="minDate" [max]="maxDate">
+            <input matStartDate placeholder="Start date" [(ngModel)]="startDate">
+            <input matEndDate placeholder="End date" [(ngModel)]="endDate">
+          </mat-date-range-input>
+          <mat-hint class="bg-white text-gray-500">MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+
+      <a href="#" (click)="toggleFilters(); removeFilter()">
         <mat-icon>filter_list_off</mat-icon>
       </a>
-
-
-    </div>
-
+    }
+    @else {
+      <a href="#" (click)="toggleFilters()">
+        <mat-icon>filter_list</mat-icon>
+      </a>
+    }
   </div>
+</div>
+<div class="dashboard-content-wrapper">
+  @if(role == 'admin') {
+    <div class="grid grid-cols-6 gap-4 text-xl my-8">
+      <div class="col-span-6">
+        <div class="card">
+          <div class="card-header pb-4">
+            <p class="text-3xl font-bold">Privacy requests metrics</p>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-6 gap-16">
+              <div class="col-span-1">
+                <div class="card rounded-xl border-2 bg-blue-700 text-white">
+                  <div class="card-header">
+                    <p class="text-xl font-semibold p-8">Total Requests</p>
+                  </div>
+                  <div class="card-body p-8 text-8xl text-center">
+                    <p>{{ getTotalRequests() }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-1">
+                <div class="card rounded-xl border-2 bg-green-700 text-white">
+                  <div class="card-header">
+                    <p class="text-xl font-semibold p-8">Processed</p>
+                  </div>
+                  <div class="card-body p-8 text-8xl text-center">
+                    <p>{{ getTotalRequestsCompleted() }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-1">
+                <div class="card rounded-xl border-2 bg-orange-700 text-white">
+                  <div class="card-header">
+                    <p class="text-xl font-semibold p-8">Non-Processed</p>
+                  </div>
+                  <div class="card-body p-8 text-8xl text-center">
+                    <p>{{ getTotalRequestsPending() }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-1">
+                <div class="card rounded-xl border-2 bg-slate-700 text-white">
+                  <div class="card-header">
+                    <p class="text-xl font-semibold p-8">Rejected</p>
+                  </div>
+                  <div class="card-body p-8 text-8xl text-center">
+                    <p>{{ getTotalRequestsRejected() }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-1">
+                <div class="card rounded-xl border-2 bg-yellow-700 text-white">
+                  <div class="card-header">
+                    <p class="text-xl font-semibold p-8">Nearing breach</p>
+                  </div>
+                  <div class="card-body p-8 text-8xl text-center">
+                    <p>{{ getTotalNearingSLAInAWeek() }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-span-1">
+                <div class="card rounded-xl border-2 bg-red-700 text-white">
+                  <div class="card-header">
+                    <p class="text-xl font-semibold p-8">In breach</p>
+                  </div>
+                  <div class="card-body p-8 text-8xl text-center">
+                    <p>{{ getTotalRequestsBreached() }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+  @else {
+    <span> Work in progress </span>
+  }
+</div>
 
   <!-- No data found container -->
   <!-- Privacy metrics - total requests, processed, non-processed -->
