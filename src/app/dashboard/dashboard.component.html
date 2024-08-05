@@ -10,23 +10,23 @@
     <div *ngIf="displayFilters" class="flex justify-between items-center">
       <!-- State Dropdown -->
       <label for="stateControl" class="text-gray-500 font-bold pr-2">State:</label>
-      <select id="stateControl" class="border border-gray-300 rounded-md p-2 mr-2">
+      <select id="stateControl" class="border border-gray-300 rounded-md p-2 mr-2" (change)="changeSelectedState($event)">
         <option value="all">All</option>
-        <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+        <option *ngFor="let state of states" [value]="state.value">{{ state.label }}</option>
       </select>
 
       <!-- Service Dropdown -->
       <label for="serviceControl" class="text-gray-500 font-bold pr-2">Service:</label>
-      <select id="serviceControl" class="border border-gray-300 rounded-md p-2 mr-2">
+      <select id="serviceControl" class="border border-gray-300 rounded-md p-2 mr-2" (change)="changeSelectedService($event)">
         <option value="all">All</option>
-        <option *ngFor="let service of services" [value]="service">{{ service }}</option>
+        <option *ngFor="let service of services" [value]="service.value">{{ service.label }}</option>
       </select>
 
       <mat-form-field>
         <mat-label>Enter a date range</mat-label>
-        <mat-date-range-input [rangePicker]="picker">
-          <input matStartDate placeholder="Start date">
-          <input matEndDate placeholder="End date">
+        <mat-date-range-input #dateRangePicker [rangePicker]="picker" [min]="minDate" [max]="maxDate">
+          <input matStartDate placeholder="Start date" [(ngModel)]="startDate">
+          <input matEndDate placeholder="End date" [(ngModel)]="endDate">
         </mat-date-range-input>
         <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
         <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
@@ -42,11 +42,8 @@
 
   </div>
 
-  <!-- DDL for services, states -->
-  <!-- Date range selection with futuristic date invalidation -->
   <!-- No data found container -->
   <!-- Privacy metrics - total requests, processed, non-processed -->
   <!-- Based on service owner selection, the privacy metrics should contain link to display tracking tab with appropriate service-owner pending requests -->
   <!-- Consent based request numbers - total, processed & non-processed with service-owner selection and tracking capability -->
   <!-- SLA Compliance metrics - Total requests processed under SLA, Total requests that breached SLA - Admin only -->
-

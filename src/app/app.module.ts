@@ -4,13 +4,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { AppComponent } from './app.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
 import { TracingComponent } from './tracing/tracing.component';
 import { PiaComponent } from './pia/pia.component';
 import { OnboardingComponent } from './onboarding/onboarding.component';
 import { ReportingComponent } from './reporting/reporting.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -23,6 +23,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
+    HttpClientModule,
     DashboardModule,
     MatSelectModule,
     MatTabsModule,
