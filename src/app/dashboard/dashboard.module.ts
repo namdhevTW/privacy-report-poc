@@ -5,25 +5,19 @@ import { MatIconModule } from '@angular/material/icon';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import { MatNativeDateModule } from '@angular/material/core';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
 
-@NgModule({
-  declarations: [
-    DashboardComponent
-  ],
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    HttpClientModule,
-    MatIconModule,
-    MatNativeDateModule,
-    MatFormFieldModule,
-    MatDatepickerModule
-  ],
-  exports: [
-    DashboardComponent
-  ]
-})
+@NgModule({ declarations: [
+        DashboardComponent
+    ],
+    exports: [
+        DashboardComponent
+    ], imports: [CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
+        MatIconModule,
+        MatNativeDateModule,
+        MatFormFieldModule,
+        MatDatepickerModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class DashboardModule { }
