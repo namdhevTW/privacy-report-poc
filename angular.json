@@ -61,10 +61,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "prv-con-mgmt-portal:build:production"
+              "buildTarget": "prv-con-mgmt-portal:build:production"
             },
             "development": {
-              "browserTarget": "prv-con-mgmt-portal:build:development"
+              "buildTarget": "prv-con-mgmt-portal:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -72,7 +72,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "prv-con-mgmt-portal:build"
+            "buildTarget": "prv-con-mgmt-portal:build"
           }
         },
         "test": {
