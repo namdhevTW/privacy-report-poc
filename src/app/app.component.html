@@ -3,14 +3,13 @@
   <div class="col-auto p-3">
     <label for="roleDDL" class="text-orange-300 pr-4">Role</label>
     <select id="roleDDL" class="bg-white text-gray-700 rounded-md p-2" (change)="changeRole($event)" [value]="role">
-      <option value="admin">Admin</option>
+      <option value="admin">Administrator</option>
       <option value="service-owner">Service Owner</option>
     </select>
 
     @if(role === 'service-owner') {
       <label for="serviceDDL" class="pl-3 text-orange-300 pr-4">Service</label>
       <select id="serviceDDL" class="bg-white text-gray-700 rounded-md p-2" (change)="changeServiceOwner($event)" [value]="selectedServiceOwner">
-        <option value="all">All services</option>
         @for (service of serviceOwners; track service.value) {
           <option [value]="service.value">{{ service.label }}</option>
         }

@@ -19,10 +19,11 @@ export class AppComponent {
     this.role = (event.target as HTMLInputElement)?.value || "admin";
     if (this.role === "service-owner") {
       this.serviceOwners = this.dataService.getServices();
+      this.selectedServiceOwner = this.serviceOwners[0].value;
     }
   }
 
   changeServiceOwner(event: any) {
-    this.selectedServiceOwner = event.value;
+    this.selectedServiceOwner = event.target.value;
   }
 }

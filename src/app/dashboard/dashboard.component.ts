@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, SimpleChanges } from '@angular/core';
 import { IPrivacyData, DataService } from '../services/data/data.service';
 
 @Component({
@@ -56,12 +56,20 @@ export class DashboardComponent {
 
         if (this.selectedServiceOwner != '') {
           this.selectedService = this.selectedServiceOwner;
+          this.applyFilter();
         }
       },
       error: (error) => {
         console.error(error);
       }
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (!changes["selectedServiceOwner"].isFirstChange() && this.selectedServiceOwner != '') {
+      this.selectedService = this.selectedServiceOwner;
+      this.applyFilter();
+    }
   }
 
   displayFriendlyRole() {

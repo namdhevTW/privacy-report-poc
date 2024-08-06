@@ -11,11 +11,13 @@
         </select>
 
         <!-- Service Dropdown -->
-        <label for="serviceControl" class="text-gray-500 font-bold pr-2">Service:</label>
-        <select id="serviceControl" class="border border-gray-300 rounded-md p-2 mr-2" (change)="changeSelectedService($event); applyFilter()">
-          <option value="all">All</option>
-          <option *ngFor="let service of services" [value]="service.value">{{ service.label }}</option>
-        </select>
+        @if(role === 'admin') {
+          <label for="serviceControl" class="text-gray-500 font-bold pr-2">Service:</label>
+          <select id="serviceControl" class="border border-gray-300 rounded-md p-2 mr-2" (change)="changeSelectedService($event); applyFilter()">
+            <option value="all">All</option>
+            <option *ngFor="let service of services" [value]="service.value">{{ service.label }}</option>
+          </select>
+        }
 
         <!-- Start date selector without material with tailwind
         <label for="startDateControl" class="text-gray-500 font-bold pr-2">Start Date:</label>
@@ -45,7 +47,6 @@
   </div>
 </div>
 <div class="dashboard-content-wrapper">
-  @if(role == 'admin') {
     <div class="grid grid-cols-6 gap-4 text-xl my-8">
       <div class="col-span-6">
         <div class="card">
@@ -119,10 +120,6 @@
         </div>
       </div>
     </div>
-  }
-  @else {
-    <span> Work in progress </span>
-  }
 </div>
 
   <!-- No data found container -->
