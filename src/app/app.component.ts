@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { MatSelectChange } from '@angular/material/select';
 import { DataService } from './services/data/data.service';
 
 @Component({

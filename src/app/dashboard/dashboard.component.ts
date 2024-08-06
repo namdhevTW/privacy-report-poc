@@ -166,9 +166,14 @@ export class DashboardComponent {
   }
 
   removeFilter() {
-    this.privacyData = this._privacyData;
-    this.selectedService='';
     this.selectedState='';
+    if (this.selectedServiceOwner != '') {
+      this.selectedService = this.selectedServiceOwner;
+      this.applyFilter();
+    } else {
+      this.privacyData = this._privacyData;
+      this.selectedService='';
+    }
   }
 
 }
