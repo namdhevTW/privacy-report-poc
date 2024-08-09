@@ -80,8 +80,11 @@ export class DashboardComponent {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (!changes["selectedServiceOwner"].isFirstChange() && this.selectedServiceOwner != '') {
+    if (changes["selectedServiceOwner"] && !changes["selectedServiceOwner"].isFirstChange() && changes["selectedServiceOwner"].currentValue != changes["selectedServiceOwner"].previousValue) {
       this.selectedService = this.selectedServiceOwner;
+      this.applyFilter();
+    } else {
+      this.selectedService = '';
       this.applyFilter();
     }
   }
@@ -277,10 +280,9 @@ export class DashboardComponent {
         },
       ],
       animationType: 'scale',
-      animationEasing: 'elasticOut',
+      animationEasing: 'quadraticOut',
       animationDelay: () => Math.random() * 200,
     };
-    console.log(this.chartOption?.series);
   }
 
 }
