@@ -47,17 +47,17 @@
   </div>
 </div>
 <div class="dashboard-content-wrapper">
-    <div class="grid grid-cols-6 gap-4 text-xl my-8">
-      <div class="col-span-6">
+    <div class="grid grid-cols-6 gap-16 text-xl my-8">
+      <div class="col-span-6 shadow-md p-4">
         <div class="card">
           <div class="card-header pb-4">
             <p class="text-3xl font-bold">Privacy requests metrics</p>
           </div>
           <div class="card-body">
-            <div class="grid grid-cols-6 gap-16">
-              <div class="col-span-1">
-                <div class="card rounded-xl border-2 bg-blue-700 text-white">
-                  <div class="card-header">
+            <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500 bg-blue-50">
+              <div class="col-span-1 border-r-2 border-gray-500 text-amber-700">
+                <div class="card">
+                  <div class="card-header min-h-[8rem] text-center">
                     <p class="text-xl font-semibold p-8">Total Requests</p>
                   </div>
                   <div class="card-body p-8 text-8xl text-center">
@@ -65,9 +65,9 @@
                   </div>
                 </div>
               </div>
-              <div class="col-span-1">
-                <div class="card rounded-xl border-2 bg-green-700 text-white">
-                  <div class="card-header">
+              <div class="col-span-1 border-r-2 border-gray-500 text-emerald-700">
+                <div class="card">
+                  <div class="card-header min-h-[8rem] text-center">
                     <p class="text-xl font-semibold p-8">Processed</p>
                   </div>
                   <div class="card-body p-8 text-8xl text-center">
@@ -75,9 +75,9 @@
                   </div>
                 </div>
               </div>
-              <div class="col-span-1">
-                <div class="card rounded-xl border-2 bg-orange-700 text-white">
-                  <div class="card-header">
+              <div class="col-span-1 border-r-2 border-gray-500 text-blue-700">
+                <div class="card">
+                  <div class="card-header min-h-[8rem] text-center">
                     <p class="text-xl font-semibold p-8">Non-Processed</p>
                   </div>
                   <div class="card-body p-8 text-8xl text-center">
@@ -85,9 +85,9 @@
                   </div>
                 </div>
               </div>
-              <div class="col-span-1">
-                <div class="card rounded-xl border-2 bg-slate-700 text-white">
-                  <div class="card-header">
+              <div class="col-span-1 border-r-2 border-gray-500 text-slate-700">
+                <div class="card">
+                  <div class="card-header min-h-[8rem] text-center">
                     <p class="text-xl font-semibold p-8">Rejected</p>
                   </div>
                   <div class="card-body p-8 text-8xl text-center">
@@ -95,24 +95,77 @@
                   </div>
                 </div>
               </div>
-              <div class="col-span-1">
-                <div class="card rounded-xl border-2 bg-yellow-700 text-white">
-                  <div class="card-header">
-                    <p class="text-xl font-semibold p-8">Nearing breach</p>
-                  </div>
-                  <div class="card-body p-8 text-8xl text-center">
-                    <p>{{ getTotalNearingSLAInAWeek() }}</p>
-                  </div>
+              <div class="col-span-2 rounded border-r-2 border-gray-500 py-8 px-4">
+                <div echarts [options]="chartOption" class="h-full"></div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <div class="col-span-6 rounded-md border border-emerald-300 shadow-md p-4">
+      <div class="card">
+        <div class="card-header pb-4">
+          <p class="text-3xl font-bold">Consent based requests metrics</p>
+        </div>
+        <div class="card-body">
+          <div class="grid grid-cols-6 gap-8">
+            <div class="col-span-1">
+              <div class="card rounded-xl border-2 bg-blue-700 text-white">
+                <div class="card-header min-h-[8rem]">
+                  <p class="text-xl font-semibold p-8">Total opt outs</p>
+                </div>
+                <div class="card-body p-8 text-8xl text-center">
+                  <p>{{ getTotalOptOuts() }}</p>
                 </div>
               </div>
-              <div class="col-span-1">
-                <div class="card rounded-xl border-2 bg-red-700 text-white">
-                  <div class="card-header">
-                    <p class="text-xl font-semibold p-8">In breach</p>
-                  </div>
-                  <div class="card-body p-8 text-8xl text-center">
-                    <p>{{ getTotalRequestsBreached() }}</p>
-                  </div>
+            </div>
+            <div class="col-span-1">
+              <div class="card rounded-xl border-2 bg-green-700 text-white">
+                <div class="card-header min-h-[8rem]">
+                  <p class="text-xl font-semibold p-8">Opt outs processed</p>
+                </div>
+                <div class="card-body p-8 text-8xl text-center">
+                  <p>{{ getTotalOptOutsCompleted() }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-span-1">
+              <div class="card rounded-xl border-2 bg-orange-700 text-white">
+                <div class="card-header min-h-[8rem]">
+                  <p class="text-xl font-semibold p-8">Opt outs in process</p>
+                </div>
+                <div class="card-body p-8 text-8xl text-center">
+                  <p>{{ getTotalOptOutsPending() }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-span-1">
+              <div class="card rounded-xl border-2 bg-slate-700 text-white">
+                <div class="card-header min-h-[8rem]">
+                  <p class="text-xl font-semibold p-8">Rejected opt outs</p>
+                </div>
+                <div class="card-body p-8 text-8xl text-center">
+                  <p>{{ getTotalOptOutsRejected() }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-span-1">
+              <div class="card rounded-xl border-2 bg-yellow-700 text-white">
+                <div class="card-header min-h-[8rem]">
+                  <p class="text-xl font-semibold p-8">Opt outs nearing breach</p>
+                </div>
+                <div class="card-body p-8 text-8xl text-center">
+                  <p>{{ getTotalOptOutsNearingSLAInAWeek() }}</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-span-1">
+              <div class="card rounded-xl border-2 bg-red-700 text-white">
+                <div class="card-header min-h-[8rem]">
+                  <p class="text-xl font-semibold p-8">Opt outs in breach</p>
+                </div>
+                <div class="card-body p-8 text-8xl text-center">
+                  <p>{{ getTotalOptOutsBreached() }}</p>
                 </div>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { Component, Input, SimpleChanges } from '@angular/core';
 import { IPrivacyData, DataService } from '../services/data/data.service';
+import { color, EChartsOption } from 'echarts';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,6 +17,14 @@ export class DashboardComponent {
   _totalRequestsRejected = 0;
   _totalNearingSLAInAWeek = 0;
   _totalRequestsBreached = 0;
+
+  _totalOptOuts = 0;
+  _totalOptOutsCompleted = 0;
+  _totalOptOutsPending = 0;
+  _totalOptOutsRejected = 0;
+  _totalOptOutsNearingSLAInAWeek = 0;
+  _totalOptOutsBreached = 0;
+
   _dataService: DataService;
   _privacyData: IPrivacyData[] = [];
   _isEndDateInvalid: boolean;
@@ -23,9 +32,9 @@ export class DashboardComponent {
   _isStartDateInFuture: boolean;
 
   displayFilters = false;
-  services: {value: string, label: string}[] = [];
-  states: {value: string, label: string}[] = [];
-  selectedState : string = '';
+  services: { value: string, label: string }[] = [];
+  states: { value: string, label: string }[] = [];
+  selectedState: string = '';
   selectedService: string = '';
   privacyData: IPrivacyData[] = [];
 
@@ -35,8 +44,11 @@ export class DashboardComponent {
   startDate!: Date;
   endDate!: Date;
 
+  chartOption: EChartsOption = {};
 
-  constructor(private dataService: DataService) {
+
+
+  constructor(dataService: DataService) {
     this._dataService = dataService;
     this.minDate = new Date(2018, 1, 1);
     this.maxDate = new Date();
@@ -58,6 +70,8 @@ export class DashboardComponent {
           this.selectedService = this.selectedServiceOwner;
           this.applyFilter();
         }
+
+        this.setPendingRequestsSLAChartOptions();
       },
       error: (error) => {
         console.error(error);
@@ -113,6 +127,36 @@ export class DashboardComponent {
     return this._totalRequestsBreached;
   }
 
+  getTotalOptOuts() {
+    this._totalOptOuts = this.privacyData.filter(d => d.requestType.includes('opt out')).length;
+    return this._totalOptOuts;
+  }
+
+  getTotalOptOutsCompleted() {
+    this._totalOptOutsCompleted = this.privacyData.filter(d => d.requestType.includes('opt out') && d.currentStage === 'Completed').length;
+    return this._totalOptOutsCompleted;
+  }
+
+  getTotalOptOutsPending() {
+    this._totalOptOutsPending = this.privacyData.filter(d => d.requestType.includes('opt out') && d.currentStage !== 'Completed' && d.currentStage !== 'Rejected').length;
+    return this._totalOptOutsPending;
+  }
+
+  getTotalOptOutsRejected() {
+    this._totalOptOutsRejected = this.privacyData.filter(d => d.requestType.includes('opt out') && d.currentStage === 'Rejected').length;
+    return this._totalOptOutsRejected;
+  }
+
+  getTotalOptOutsNearingSLAInAWeek() {
+    this._totalOptOutsNearingSLAInAWeek = this.privacyData.filter(d => d.requestType.includes('opt out') && d.currentStage !== 'Completed' && d.currentStage !== 'Rejected' && Number(d.slaDays) < 7 && Number(d.slaDays) > 0).length;
+    return this._totalOptOutsNearingSLAInAWeek;
+  }
+
+  getTotalOptOutsBreached() {
+    this._totalOptOutsBreached = this.privacyData.filter(d => d.requestType.includes('opt out') && d.currentStage !== 'Completed' && d.currentStage !== 'Rejected' && Number(d.slaDays) < 0).length;
+    return this._totalOptOutsBreached;
+  }
+
   changeStartDate(event: any) {
     this.startDate = event.target.value;
   }
@@ -132,7 +176,9 @@ export class DashboardComponent {
     return true;
   }
 
-
+  getSLAGGraphSize(): number {
+    return Math.max(this._totalRequestsPending, this._totalNearingSLAInAWeek, this._totalRequestsBreached);
+  }
 
   toggleFilters() {
     this.displayFilters = !this.displayFilters;
@@ -163,17 +209,78 @@ export class DashboardComponent {
       }
       return true;
     });
+    this.setPendingRequestsSLAChartOptions();
   }
 
   removeFilter() {
-    this.selectedState='';
+    this.selectedState = '';
     if (this.selectedServiceOwner != '') {
       this.selectedService = this.selectedServiceOwner;
       this.applyFilter();
     } else {
       this.privacyData = this._privacyData;
-      this.selectedService='';
+      this.selectedService = '';
     }
+  }
+
+  private setPendingRequestsSLAChartOptions(): void {
+    this.chartOption = {
+      title: {
+        text: "SLA Compliance",
+        subtext: "SLA compliance of non-processed requests",
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 20,
+        },
+        subtextStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 16,
+        },
+        left: "center",
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: '{a} <br/>{b} : {c} ({d}%)',
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 16,
+        },
+      },
+      calculable: true,
+      itemStyle: {
+        shadowBlur: 200,
+        shadowColor: 'rgba(0, 0, 0, 0.5)',
+      },
+      series: [
+        {
+          name: 'SLA Compliance',
+          type: 'pie',
+          height: '140%',
+          radius: ['40%', '70%'],
+          center: ['50%', '70%'],
+          startAngle: 180,
+          endAngle: 360,
+          label: {
+            show: true,
+            position: 'outer',
+            formatter: '{b} : {c} ({d}%)',
+            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: 13,
+          },
+          color: ["#047857", "#facc15", "#dc2626"],
+          // color: ["rgb(16 185 129)", "rgb(253 224 71)", "rgb(248 113 113)"],
+          data: [
+            { value: this.getTotalRequestsPending(), name: 'Compliant' },
+            { value: this.getTotalNearingSLAInAWeek(), name: 'Nearing breach' },
+            { value: this.getTotalRequestsBreached(), name: 'Breached' },
+          ],
+        },
+      ],
+      animationType: 'scale',
+      animationEasing: 'elasticOut',
+      animationDelay: () => Math.random() * 200,
+    };
+    console.log(this.chartOption?.series);
   }
 
 }
