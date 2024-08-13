@@ -1,6 +1,6 @@
 import { Component, Input, SimpleChanges } from '@angular/core';
 import { IPrivacyData, DataService } from '../services/data/data.service';
-import { color, EChartsOption } from 'echarts';
+import { EChartsOption } from 'echarts';
 
 @Component({
   selector: 'app-dashboard',
@@ -44,9 +44,9 @@ export class DashboardComponent {
   startDate!: Date;
   endDate!: Date;
 
-  chartOption: EChartsOption = {};
-
-
+  slaChartOption: EChartsOption = {};
+  requestTypeChartOption: EChartsOption = {};
+  serviceOwnerChartOption: EChartsOption = {};
 
   constructor(dataService: DataService) {
     this._dataService = dataService;
@@ -66,21 +66,23 @@ export class DashboardComponent {
         this.privacyData = data;
         this._privacyData = data;
 
-        if (this.selectedServiceOwner != '') {
+        if (this.selectedServiceOwner !== '') {
           this.selectedService = this.selectedServiceOwner;
           this.applyFilter();
         }
 
-        this.setPendingRequestsSLAChartOptions();
+        this.setChartOptions();
       },
       error: (error) => {
+        // tslint:disable-next-line: no-console
         console.error(error);
       }
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes["selectedServiceOwner"] && !changes["selectedServiceOwner"].isFirstChange() && changes["selectedServiceOwner"].currentValue != changes["selectedServiceOwner"].previousValue) {
+    // tslint:disable-next-line:no-string-literal
+    if (changes["selectedServiceOwner"] && !changes["selectedServiceOwner"].isFirstChange() && changes["selectedServiceOwner"].currentValue !== changes["selectedServiceOwner"].previousValue) {
       this.selectedService = this.selectedServiceOwner;
       this.applyFilter();
     } else {
@@ -118,6 +120,10 @@ export class DashboardComponent {
   getTotalRequestsRejected() {
     this._totalRequestsRejected = this.privacyData.filter(d => d.currentStage === 'Rejected').length;
     return this._totalRequestsRejected;
+  }
+
+  getTotalRequestsInSLA() {
+    return this.privacyData.filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected' && Number(d.slaDays) >= 7).length;
   }
 
   getTotalNearingSLAInAWeek() {
@@ -183,25 +189,28 @@ export class DashboardComponent {
     return Math.max(this._totalRequestsPending, this._totalNearingSLAInAWeek, this._totalRequestsBreached);
   }
 
+  getUniqueRequestTypes(): string[] {
+    return this.privacyData.map(d => d.requestType).filter((value, index, self) => self.indexOf(value) === index);
+  }
+
   toggleFilters() {
     this.displayFilters = !this.displayFilters;
   }
 
-  changeSelectedState(event: any) {
-    this.selectedState = event.target.value;
+  changeSelectedState(stateSelected: string) {
+    this.selectedState = stateSelected;
   }
 
-  changeSelectedService(event: any) {
-    this.selectedService = event.target.value;
+  changeSelectedService(serviceSelected: string) {
+    this.selectedService = serviceSelected;
   }
-
 
   applyFilter() {
     this.privacyData = this._privacyData.filter((d) => {
-      if (this.selectedState && d.state !== this.selectedState && this.selectedState != "all") {
+      if (this.selectedState && d.state !== this.selectedState && this.selectedState !== "all") {
         return false;
       }
-      if (this.selectedService && d.serviceOwner !== this.selectedService && this.selectedService != "all") {
+      if (this.selectedService && d.serviceOwner !== this.selectedService && this.selectedService !== "all") {
         return false;
       }
       if (this.startDate && new Date(d.requestCreatedDate) < this.startDate) {
@@ -212,12 +221,12 @@ export class DashboardComponent {
       }
       return true;
     });
-    this.setPendingRequestsSLAChartOptions();
+    this.setChartOptions();
   }
 
   removeFilter() {
     this.selectedState = '';
-    if (this.selectedServiceOwner != '') {
+    if (this.selectedServiceOwner !== '') {
       this.selectedService = this.selectedServiceOwner;
       this.applyFilter();
     } else {
@@ -226,8 +235,12 @@ export class DashboardComponent {
     }
   }
 
+  isSLADataUnavailable(): boolean {
+    return this.getTotalNearingSLAInAWeek() === 0 && this.getTotalRequestsBreached() === 0 && this.getTotalRequestsInSLA() === 0;
+  }
+
   private setPendingRequestsSLAChartOptions(): void {
-    this.chartOption = {
+    this.slaChartOption = {
       title: {
         text: "SLA Compliance",
         subtext: "SLA compliance of non-processed requests",
@@ -259,10 +272,20 @@ export class DashboardComponent {
           name: 'SLA Compliance',
           type: 'pie',
           height: '140%',
+          padAngle: 5,
+          itemStyle: {
+            borderRadius: 10
+          },
           radius: ['40%', '70%'],
           center: ['50%', '70%'],
           startAngle: 180,
           endAngle: 360,
+          showEmptyCircle: this.isSLADataUnavailable(),
+          emptyCircleStyle: {
+            color: 'transparent',
+            borderColor: '#ddd',
+            borderWidth: 1
+          },
           label: {
             show: true,
             position: 'outer',
@@ -273,7 +296,7 @@ export class DashboardComponent {
           color: ["#047857", "#facc15", "#dc2626"],
           // color: ["rgb(16 185 129)", "rgb(253 224 71)", "rgb(248 113 113)"],
           data: [
-            { value: this.getTotalRequestsPending(), name: 'Compliant' },
+            { value: this.getTotalRequestsInSLA(), name: 'Compliant' },
             { value: this.getTotalNearingSLAInAWeek(), name: 'Nearing breach' },
             { value: this.getTotalRequestsBreached(), name: 'Breached' },
           ],
@@ -285,4 +308,218 @@ export class DashboardComponent {
     };
   }
 
+  private setChartOptions(): void {
+    this.setPendingRequestsSLAChartOptions();
+    this.setRequestTypesChartOptions();
+    this.setServiceOwnerChartOptions();
+  }
+
+  private setRequestTypesChartOptions(): void {
+    // Set requestTypeChartOption with request types and their count by using getUniquePendingRequestTypesWithCount function and display in pie chart with echarts and rose type layout
+    this.requestTypeChartOption = {
+      title: {
+        text: 'Request type distribution',
+        subtext: `Request type distribution for the ${this.getTotalRequestsPending()} non-processed requests`,
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 20,
+        },
+        subtextStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 16,
+          align: 'center',
+          lineHeight: 20,
+        },
+        left: 'center',
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: '{b} : <br/> {c} ({d}%)',
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 14,
+        },
+      },
+      calculable: true,
+      itemStyle: {
+        shadowBlur: 200,
+        shadowColor: 'rgba(0, 0, 0, 0.5)',
+      },
+      legend: {
+        orient: 'vertical',
+        bottom: 0,
+        left: 0,
+        data: this.getUniquePendingRequestTypesWithCount().map(d => d.name),
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 14,
+        },
+      },
+      series: [
+        {
+          name: 'Request type',
+          type: 'pie',
+          padAngle: 5,
+          itemStyle: {
+            borderRadius: 15,
+            borderWidth: 0.5
+          },
+          radius: ['35%', '45%'],
+          // color: ['#047857', '#facc15', '#dc2626'],
+          label: {
+            show: true,
+            position: 'outside',
+            formatter: '{c} - ({d}%)',
+            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: 12,
+          },
+          // color: ["rgb(16 185 129)", "rgb(253 224 71)", "rgb(248 113 113)"],
+          data: this.getUniquePendingRequestTypesWithCount(),
+        },
+      ],
+      animationType: 'scale',
+      animationEasing: 'quadraticOut',
+      animationDelay: () => Math.random() * 200,
+    };
+  }
+
+  private setServiceOwnerChartOptions(): void {
+    this.serviceOwnerChartOption = {
+      title: {
+        text: 'Non-processed Request types per Service Owner',
+        subtext: `Non-processed Request types per Service Owner\n for the ${this.getTotalRequestsPending()} non-processed requests`,
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 20,
+        },
+        subtextStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 16,
+          align: 'center',
+          width: '90%',
+        },
+        left: 'center',
+      },
+      tooltip: {
+        position: 'top',
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 14,
+        },
+      },
+      grid: {
+        height: '50%',
+        top: 'center',
+        containLabel: true,
+
+      },
+      xAxis: {
+        type: 'category',
+        data: this.getUniqueRequestTypes(),
+        splitArea: {
+          show: true,
+        },
+        axisLabel: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 12,
+        },
+      },
+      yAxis: {
+        type: 'category',
+        data: this.services.map(d => d.label),
+        splitArea: {
+          show: true,
+        },
+        axisLabel: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 12,
+        },
+      },
+      visualMap: {
+        min: 0,
+        max: 10, //Math.max(...this.getUniqueServiceOwnersWithRequestTypesAndNonProcessedRequestCount().map(d => d[2])),
+        showLabel: true,
+        borderMiterLimit: 1,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        bottom: '5%',
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 12,
+        },
+        inRange: {
+          color: ['#047857', '#facc15', '#dc2626'],
+        },
+      },
+      series: [
+        {
+          name: 'Non-processed Requests',
+          type: 'heatmap',
+          data: this.getUniqueServiceOwnersWithRequestTypesAndNonProcessedRequestCount().map(d => [d[0], d[1], d[2]]),
+          label: {
+            show: true,
+            color: '#000',
+            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: 12,
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)',
+            },
+          },
+        },
+      ],
+    };
+  };
+
+  private getUniquePendingRequestTypesWithCount(): { value: number, name: string }[] {
+    // Get unique request types with count and map request type to name and count to value
+    const requestTypes = this.privacyData
+      .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
+      .map(d => d.requestType)
+      .reduce((acc, curr) => {
+        acc[curr] = (acc[curr] || 0) + 1;
+        return acc;
+      }, {} as { [key: string]: number });
+
+    // sort request types by count in descending order
+    Object.keys(requestTypes).sort((a, b) => requestTypes[b] - requestTypes[a]);
+    return Object.keys(requestTypes).map(key => ({ name: key, value: requestTypes[key] }));
+  }
+
+  private getUniqueServiceOwnersWithRequestTypesAndNonProcessedRequestCount(): [requestType: string, serviceOwner: string, count: number][] {
+    // Get unique service owners with request types and count and map request type to requestType, service owner to serviceOwner and count to count
+    const serviceOwners = this.privacyData
+      .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
+      .map(d => ({ requestType: d.requestType, serviceOwner: d.serviceOwner }))
+      .reduce((acc, curr) => {
+        const key = `${curr.requestType}-${curr.serviceOwner}`;
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {} as { [key: string]: number });
+
+    const uniqueServiceOwners = Array.from(new Set(this.privacyData
+      .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
+      .map(d => d.serviceOwner)));
+
+    const uniqueRequestTypes = Array.from(new Set(this.privacyData
+      .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
+      .map(d => d.requestType)));
+
+    const result: [string, string, number][] = [];
+
+    uniqueRequestTypes.forEach(requestType => {
+      uniqueServiceOwners.forEach(serviceOwner => {
+        const key = `${requestType}-${serviceOwner}`;
+        const serviceOwnerLabel = this.services.find(s => s.value === serviceOwner)?.label || serviceOwner;
+        const count = serviceOwners[key] || 0;
+        result.push([requestType, serviceOwnerLabel, count]);
+      });
+    });
+
+    return result;
+  }
 }
+

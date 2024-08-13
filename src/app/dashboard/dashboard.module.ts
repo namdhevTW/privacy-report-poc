@@ -9,6 +9,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SharedModule } from '../shared/shared.module';
 import { NgxEchartsModule } from 'ngx-echarts';
+import { MatSelectModule } from '@angular/material/select';
 
 @NgModule({
   declarations: [
@@ -21,6 +22,7 @@ import { NgxEchartsModule } from 'ngx-echarts';
     ReactiveFormsModule,
     MatIconModule,
     MatNativeDateModule,
+    MatSelectModule,
     SharedModule,
     NgxEchartsModule.forRoot({
       /**
