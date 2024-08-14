@@ -7,9 +7,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatNativeDateModule } from '@angular/material/core';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { SharedModule } from '../shared/shared.module';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { MatSelectModule } from '@angular/material/select';
+import { SharedModule } from '@app/shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -25,12 +25,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatSelectModule,
     SharedModule,
     NgxEchartsModule.forRoot({
-      /**
-       * This will import all modules from echarts.
-       * If you only need custom modules,
-       * please refer to [Custom Build] section.
-       */
-      echarts: () => import('echarts'), // or import('./path-to-my-custom-echarts')
+      echarts: () => import('echarts'),
     }),
     MatFormFieldModule,
     MatDatepickerModule], providers: [provideHttpClient(withInterceptorsFromDi())]

@@ -6,7 +6,7 @@
     @if(displayFilters) {
     <mat-form-field class="pr-2">
       <mat-label>State:</mat-label>
-      <mat-select id="stateControl" [(value)]="selectedState"
+      <mat-select id="stateControl" [(ngModel)]="selectedState"
         (selectionChange)="changeSelectedState($event.value); applyFilter()">
         <mat-option value="all">All</mat-option>
         <mat-option *ngFor="let state of states" [value]="state.value">{{ state.label }}</mat-option>
@@ -17,7 +17,7 @@
     @if(role === 'admin') {
     <mat-form-field class="pr-2">
       <mat-label>Service:</mat-label>
-      <mat-select id="serviceControl" [(value)]="selectedService"
+      <mat-select id="serviceControl" [(ngModel)]="selectedService"
         (selectionChange)="changeSelectedService($event.value); applyFilter()">
         <mat-option value="all">All</mat-option>
         <mat-option *ngFor="let service of services" [value]="service.value">{{ service.label }}</mat-option>
@@ -25,16 +25,11 @@
     </mat-form-field>
     }
 
-    <!-- Start date selector without material with tailwind
-        <label for="startDateControl" class="text-gray-500 font-bold pr-2">Start Date:</label>
-        <input id="startDateControl" #startDateControl type="date" class="border border-gray-300 rounded-md p-2 mr-2 form-control" max="{{maxDate | date: 'dd/MM/yyyy'}}" [(ngModel)]="startDate" (change)="applyFilter()">
-        <span class="text-red-400" *ngIf="!isStartDateValid()">Error in start date selection</span> -->
-
     <mat-form-field class="px-2 bg-white">
       <mat-label class="">Enter a date range</mat-label>
       <mat-date-range-input #dateRangePicker [rangePicker]="picker" [min]="minDate" [max]="maxDate">
-        <input matStartDate placeholder="Start date" [(ngModel)]="startDate">
-        <input matEndDate placeholder="End date" [(ngModel)]="endDate">
+        <input matStartDate placeholder="Start date" [(ngModel)]="selectedStartDate">
+        <input matEndDate placeholder="End date" [(ngModel)]="selectedEndDate">
       </mat-date-range-input>
       <mat-hint class="bg-white text-gray-500">MM/DD/YYYY – MM/DD/YYYY</mat-hint>
       <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
@@ -65,10 +60,10 @@
             <div class="col-span-1 border-r-2 border-gray-500 text-amber-700">
               <div class="card">
                 <div class="card-header min-h-[8rem] text-center">
-                  <p class="text-xl font-semibold p-8">Total Requests</p>
+                  <p class="text-xl font-semibold p-8">Total</p>
                 </div>
                 <div class="card-body p-8 text-8xl text-center">
-                  <p>{{ getTotalRequests() }}</p>
+                  <p>{{ requestStats.all }}</p>
                 </div>
               </div>
             </div>
@@ -78,7 +73,7 @@
                   <p class="text-xl font-semibold p-8">Processed</p>
                 </div>
                 <div class="card-body p-8 text-8xl text-center">
-                  <p>{{ getTotalRequestsCompleted() }}</p>
+                  <p>{{ requestStats.completed }}</p>
                 </div>
               </div>
             </div>
@@ -88,7 +83,7 @@
                   <p class="text-xl font-semibold p-8">Non-Processed</p>
                 </div>
                 <div class="card-body p-8 text-8xl text-center">
-                  <p>{{ getTotalRequestsPending() }}</p>
+                  <p>{{ requestStats.pending }}</p>
                 </div>
               </div>
             </div>
@@ -98,7 +93,7 @@
                   <p class="text-xl font-semibold p-8">Rejected</p>
                 </div>
                 <div class="card-body p-8 text-8xl text-center">
-                  <p>{{ getTotalRequestsRejected() }}</p>
+                  <p>{{ requestStats.rejected }}</p>
                 </div>
               </div>
             </div>
@@ -122,22 +117,22 @@
       </div>
     </div>
     <div class="col-span-2 p-4">
-      <!-- using echarts display a pie chart distribution of request types -->
+      <!-- Request type distribution chart for Non-processed requests -->
       <div class="card rounded border-2 border-gray-500 p-4">
         <div class="card-body">
           <div echarts [options]="requestTypeChartOption" class="h-full"></div>
         </div>
       </div>
     </div>
-    <div class="col-span-2 p-4">
-      <!-- using echarts display a pie chart distribution of request types -->
+    <div class="col-span-4 p-4">
+      <!-- Heatmap of service owners against request types for non-processed requests -->
       <div class="card rounded border-2 border-gray-500 p-4">
         <div class="card-body">
           <div echarts [options]="serviceOwnerChartOption" class="h-full"></div>
         </div>
       </div>
     </div>
-    <div class="col-span-6 rounded-md border border-emerald-300 shadow-md p-4">
+    <!-- <div class="col-span-6 rounded-md border border-emerald-300 shadow-md p-4">
       <div class="card">
         <div class="card-header pb-4">
           <p class="text-3xl font-bold">Consent based requests metrics</p>
@@ -207,7 +202,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
   } @else {
   <!-- Display No data in a tailwind formatted center box -->

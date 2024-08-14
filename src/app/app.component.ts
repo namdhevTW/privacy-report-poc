@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DataService } from './services/data/data.service';
+import { DataService } from './core/services/data/data.service';
 
 @Component({
   selector: 'app-root',
@@ -8,11 +8,11 @@ import { DataService } from './services/data/data.service';
 })
 export class AppComponent {
   role = "admin";
-  serviceOwners: {value: string, label: string}[] = [];
+  serviceOwners: { value: string, label: string }[] = [];
 
   selectedServiceOwner = '';
 
-  constructor(private dataService: DataService) {}
+  constructor(private dataService: DataService) { }
 
   changeRole(event: Event) {
     this.role = (event.target as HTMLInputElement)?.value || "admin";

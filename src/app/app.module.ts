@@ -5,12 +5,12 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
 import { TracingComponent } from './tracing/tracing.component';
-import { PiaComponent } from './pia/pia.component';
-import { OnboardingComponent } from './onboarding/onboarding.component';
-import { ReportingComponent } from './reporting/reporting.component';
-import { DashboardModule } from './dashboard/dashboard.module';
+import { PiaComponent } from './modules/pia/pia.component';
+import { OnboardingComponent } from './modules/onboarding/onboarding.component';
+import { ReportingComponent } from './modules/reporting/reporting.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @NgModule({
   declarations: [
