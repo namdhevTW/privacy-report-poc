@@ -49,6 +49,7 @@ export class DashboardComponent {
   slaChartOption: EChartsOption = {};
   requestTypeChartOption: EChartsOption = {};
   serviceOwnerChartOption: EChartsOption = {};
+  nonProcessedRequestsByCurrentStageChartOption: EChartsOption = {};
 
   constructor(private dashboardService: DashboardService) {
     this.minDate = new Date(2018, 1, 1);
@@ -150,24 +151,12 @@ export class DashboardComponent {
     return this.requestStats.nearingSLAInAWeek === 0 && this.requestStats.breached === 0 && this.requestStats.inSLA === 0;
   }
 
-  private setPendingRequestsSLAChartOptions(): void {
-    this.slaChartOption = this.dashboardService.fetchSLAComplianceChartOptions(this.requestStats);
-  }
-
-
   private setChartOptions(): void {
-    this.setPendingRequestsSLAChartOptions();
-    this.setRequestTypesChartOptions();
-    this.setServiceOwnerChartOptions();
-  }
-
-  private setRequestTypesChartOptions(): void {
+    this.slaChartOption = this.dashboardService.fetchSLAComplianceChartOptions(this.requestStats);
     this.requestTypeChartOption = this.dashboardService.fetchRequestTypePieChartOptions(this.privacyData);
-  }
-
-  private setServiceOwnerChartOptions(): void {
     this.serviceOwnerChartOption = this.dashboardService.fetchServiceOwnerRequestTypeHeatMapChartOptions(this.privacyData);
-  };
+    this.nonProcessedRequestsByCurrentStageChartOption = this.dashboardService.fetchNonProcessedRequestsByCurrentStageBarChartOption(this.privacyData);
+  }
 
   private updateRequestStats(data: IPrivacyData[]) {
     this.requestStats = this.dashboardService.calculateTotals(data);

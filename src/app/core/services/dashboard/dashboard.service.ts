@@ -34,13 +34,13 @@ export class DashboardService {
       pending: data.filter(d => this.isRequestPending(d)).length,
       rejected: data.filter(d => this.isRequestRejected(d)).length,
       inSLA: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) >= 7).length,
-      nearingSLAInAWeek: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) < 7).length,
+      nearingSLAInAWeek: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7).length,
       breached: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) < 0).length,
       allOptOuts: data.filter(d => this.isOptOutRequest(d)).length,
       optOutCompleted: data.filter(d => this.isOptOutRequest(d) && this.isRequestCompleted(d)).length,
       optOutPending: data.filter(d => this.isOptOutRequest(d) && this.isRequestPending(d)).length,
       optOutRejected: data.filter(d => this.isOptOutRequest(d) && this.isRequestRejected(d)).length,
-      optOutNearingSLAInAWeek: data.filter(d => this.isOptOutRequest(d) && this.isRequestPending(d) && Number(d.slaDays) < 7).length,
+      optOutNearingSLAInAWeek: data.filter(d => this.isOptOutRequest(d) && this.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7).length,
       optOutBreached: data.filter(d => this.isOptOutRequest(d) && this.isRequestPending(d) && Number(d.slaDays) < 0).length
     };
     return totals;
@@ -317,7 +317,7 @@ export class DashboardService {
         },
         axisLabel: {
           fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 9,
+          fontSize: 12,
         },
       },
       yAxis: {
@@ -357,6 +357,96 @@ export class DashboardService {
             show: true,
             fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
             fontSize: 12,
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)',
+            },
+          },
+        },
+      ],
+    };
+  }
+
+  fetchNonProcessedRequestsByCurrentStageBarChartOption(data: IPrivacyData[]): EChartsOption {
+    let currentStageCounts = data.filter(d => this.isRequestPending(d)).map(d => d.currentStage).reduce((acc, curr) => {
+      acc[curr] = (acc[curr] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
+
+    currentStageCounts = Object.entries(currentStageCounts)
+      .sort((a, b) => b[1] - a[1])
+      .reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      }, {} as { [key: string]: number });
+
+    return {
+      title: {
+        text: 'Non-processed Requests by Current Stage',
+        subtext: 'Non-processed Requests by Current Stage',
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 20,
+        },
+        subtextStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 16,
+          align: 'center',
+          width: '90%',
+        },
+        left: 'center',
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow',
+        },
+        textStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 14,
+        },
+      },
+      grid: {
+        height: '80%',
+        top: '20%',
+        bottom: 'center',
+        left: 'start',
+        containLabel: true,
+      },
+      xAxis: {
+        type: 'category',
+        data: Object.keys(currentStageCounts),
+        axisLabel: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 12,
+        },
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 12,
+        },
+      },
+      series: [
+        {
+          name: 'Non-processed Requests',
+          type: 'bar',
+          showBackground: true,
+          backgroundStyle: {
+            color: 'rgba(220, 220, 220, 0.8)',
+          },
+          label: {
+            show: true,
+            position: 'inside',
+            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: 12,
+          },
+          data: Object.values(currentStageCounts),
+          itemStyle: {
+            borderRadius: 2,
           },
           emphasis: {
             itemStyle: {
