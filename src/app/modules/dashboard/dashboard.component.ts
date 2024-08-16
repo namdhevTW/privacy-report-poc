@@ -1,7 +1,8 @@
-import { Component, Input, SimpleChanges } from '@angular/core';
+import { Component } from '@angular/core';
 import { EChartsOption } from 'echarts';
 import { IPrivacyData } from '@core/models/interfaces/privacy-data';
 import { DashboardService } from '@core/services/dashboard/dashboard.service';
+import { AuthService } from '@app/core/services/auth/auth.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -9,8 +10,8 @@ import { DashboardService } from '@core/services/dashboard/dashboard.service';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent {
-  @Input() role = "admin";
-  @Input() selectedServiceOwner = '';
+  role: string = 'admin';
+  selectedTab: number = 0;
 
   requestStats = {
     all: 0,
@@ -28,86 +29,75 @@ export class DashboardComponent {
     optOutBreached: 0
   };
 
-  _isEndDateInvalid: boolean;
-  _isStartDateTooEarly: boolean;
-  _isStartDateInFuture: boolean;
-
-  displayFilters = false;
+  showDateRangeSelectionErrorStatus = false;
   services: { value: string, label: string }[] = [];
   states: { value: string, label: string }[] = [];
+  requestTypes: string[] = [];
   selectedState: string = 'all';
   selectedService: string = 'all';
-  selectedRequestType: string = '';
+  selectedRequestType: string = 'All';
   privacyData: IPrivacyData[] = [];
-
-  minDate: Date;
-  maxDate: Date;
 
   selectedStartDate!: Date;
   selectedEndDate!: Date;
+  presetQuickDateRanges = { Today: [new Date(), new Date()], 'Last 7 Days': [new Date(new Date().setDate(new Date().getDate() - 7)), new Date()], 'Last 30 Days': [new Date(new Date().setDate(new Date().getDate() - 30)), new Date()] };
 
   slaChartOption: EChartsOption = {};
   requestTypeChartOption: EChartsOption = {};
   serviceOwnerChartOption: EChartsOption = {};
   nonProcessedRequestsByCurrentStageChartOption: EChartsOption = {};
 
-  constructor(private dashboardService: DashboardService) {
-    this.minDate = new Date(2018, 1, 1);
-    this.maxDate = new Date();
+  constructor(private dashboardService: DashboardService, private authService: AuthService) {
     this.states = this.dashboardService.fetchStateOptions();
+    this.states.unshift({ value: 'all', label: 'All' });
+
     this.services = this.dashboardService.fetchServiceOwners();
-    this._isEndDateInvalid = this.selectedEndDate && this.selectedStartDate > this.selectedEndDate;
-    this._isStartDateInFuture = this.selectedStartDate > new Date();
-    this._isStartDateTooEarly = this.selectedStartDate < this.minDate;
+    this.services.unshift({ value: 'all', label: 'All' });
   }
 
   ngOnInit() {
     this.dashboardService.getDashboardData().subscribe((data) => {
       this.privacyData = data;
-      this.updateRequestStats(data);
 
-      if (this.selectedServiceOwner !== '') {
-        this.selectedService = this.selectedServiceOwner;
+      this.requestTypes = this.dashboardService.fetchUniqueRequestTypes();
+      this.requestTypes.unshift('All');
+
+      this.role = this.authService.role;
+      if (this.role === 'service-owner') {
+        this.selectedService = this.authService.serviceOwner;
         this.applyFilter();
       }
+      this.updateRequestStats(this.privacyData);
       this.setChartOptions();
     });
-  }
 
-  ngOnChanges(changes: SimpleChanges) {
-    // tslint:disable-next-line:no-string-literal
-    if (changes["selectedServiceOwner"] && !changes["selectedServiceOwner"].isFirstChange() && changes["selectedServiceOwner"].currentValue !== changes["selectedServiceOwner"].previousValue) {
-      this.selectedService = this.selectedServiceOwner;
+
+    this.authService.roleChangeSubject.subscribe((role) => {
+      this.role = role;
+      if (this.role === 'service-owner') {
+        this.selectedService = this.authService.serviceOwner;
+      } else {
+        this.selectedService = 'all';
+      }
       this.applyFilter();
-    } else {
-      this.selectedService = 'all';
+    });
+
+    this.authService.serviceOwnerChangeSubject.subscribe((serviceOwner) => {
+      this.selectedService = serviceOwner;
       this.applyFilter();
-    }
+    });
   }
-
-  displayFriendlyRole() {
-    switch (this.role) {
-      case "admin":
-        return "Administrator";
-      case "service-owner":
-        return "Service owner";
-      default:
-        return "User";
-    }
-  }
-
-
 
   changeStartDate(event: any) {
     this.selectedStartDate = event.target.value;
   }
 
-  isStartDateValid(): boolean {
-    return this._isEndDateInvalid || this._isStartDateTooEarly || this._isStartDateInFuture;
-  }
-
   changeEndDate(event: any) {
     this.selectedEndDate = event.target.value;
+  }
+
+  changeSelectedTab(tab: number) {
+    this.selectedTab = tab;
   }
 
   isEndDateValid(): boolean {
@@ -121,16 +111,25 @@ export class DashboardComponent {
     return this.privacyData.map(d => d.requestType).filter((value, index, self) => self.indexOf(value) === index);
   }
 
-  toggleFilters() {
-    this.displayFilters = !this.displayFilters;
-  }
-
   changeSelectedState(stateSelected: string) {
     this.selectedState = stateSelected;
   }
 
   changeSelectedService(serviceSelected: string) {
     this.selectedService = serviceSelected;
+  }
+
+  disabledDates(date: Date): boolean {
+    return date > new Date() || date < new Date('2018-01-01');
+  }
+
+  changeSelectedRequestCreatedDate(result: Date) {
+    if (Array.isArray(result)) {
+      this.selectedStartDate = result[0];
+      this.selectedEndDate = result[1];
+
+      this.showDateRangeSelectionErrorStatus = this.disabledDates(this.selectedStartDate) || this.disabledDates(this.selectedEndDate);
+    }
   }
 
   applyFilter() {
@@ -142,7 +141,8 @@ export class DashboardComponent {
   removeFilter() {
     this.selectedState = 'all';
     this.selectedService = 'all';
-    this.privacyData = this.dashboardService.removeDashboardFilters(this.selectedServiceOwner);
+    this.selectedRequestType = 'All';
+    this.privacyData = this.dashboardService.removeDashboardFilters(this.selectedService);
     this.updateRequestStats(this.privacyData);
     this.setChartOptions();
   }

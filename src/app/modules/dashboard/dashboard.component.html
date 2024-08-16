@@ -1,159 +1,155 @@
-<div class="grid grid-cols-6 gap-8 items-center">
-  <div class="col-span-3">
-    <label for="roleControl" class="text-gray-500 font-bold">Role: {{ displayFriendlyRole() }}</label>
+<div class="grid grid-cols-6 gap-8 items-center py-4">
+  <div class="col-span-1 mr-auto">
+    <nz-segmented [nzOptions]="['Overall metrics', 'Processed metrics']" [(ngModel)]="selectedTab" (ngModelChange)="changeSelectedTab($event)" nzSize="large"></nz-segmented>
   </div>
-  <div class="col-span-3 ml-auto">
-    @if(displayFilters) {
-    <mat-form-field class="pr-2">
-      <mat-label>State:</mat-label>
-      <mat-select id="stateControl" [(ngModel)]="selectedState"
-        (selectionChange)="changeSelectedState($event.value); applyFilter()">
-        <mat-option value="all">All</mat-option>
-        <mat-option *ngFor="let state of states" [value]="state.value">{{ state.label }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+  <div class="col-span-5 ml-auto">
+    <!--State options-->
+    <span class="text-lg pr-2">State: </span>
+    <nz-select [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedState" (ngModelChange)="changeSelectedState($event); applyFilter()" nzSize="large">
+      <nz-option *ngFor="let state of states" [nzValue]="state.value" [nzLabel]="state.label"></nz-option>
+    </nz-select>
 
     <!-- Service Dropdown -->
     @if(role === 'admin') {
-    <mat-form-field class="pr-2">
-      <mat-label>Service:</mat-label>
-      <mat-select id="serviceControl" [(ngModel)]="selectedService"
-        (selectionChange)="changeSelectedService($event.value); applyFilter()">
-        <mat-option value="all">All</mat-option>
-        <mat-option *ngFor="let service of services" [value]="service.value">{{ service.label }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <span class="text-lg pl-4 pr-2">Service: </span>
+    <nz-select [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedService" (ngModelChange)="changeSelectedService($event); applyFilter()" nzSize="large">
+      <nz-option *ngFor="let service of services" [nzValue]="service.value" [nzLabel]="service.label"></nz-option>
+    </nz-select>
+
+    <!-- Request type options-->
+    <span class="text-lg pl-4 pr-2">Request Type: </span>
+    <nz-select [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedRequestType" (ngModelChange)="applyFilter()" nzSize="large">
+      <nz-option *ngFor="let requestType of requestTypes" [nzValue]="requestType" [nzLabel]="requestType"></nz-option>
+    </nz-select>
     }
 
-    <mat-form-field class="px-2 bg-white">
-      <mat-label class="">Enter a date range</mat-label>
-      <mat-date-range-input #dateRangePicker [rangePicker]="picker" [min]="minDate" [max]="maxDate">
-        <input matStartDate placeholder="Start date" [(ngModel)]="selectedStartDate">
-        <input matEndDate placeholder="End date" [(ngModel)]="selectedEndDate">
-      </mat-date-range-input>
-      <mat-hint class="bg-white text-gray-500">MM/DD/YYYY – MM/DD/YYYY</mat-hint>
-      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-      <mat-date-range-picker #picker></mat-date-range-picker>
-    </mat-form-field>
 
-    <a href="#" (click)="toggleFilters(); removeFilter()">
-      <mat-icon>filter_list_off</mat-icon>
+    <!-- Request creation range picker -->
+    <span class="text-lg pl-4 pr-2">Created Date: </span>
+    <nz-range-picker [nzRanges]="presetQuickDateRanges" ngModel (ngModelChange)="changeSelectedRequestCreatedDate($event)" [nzFormat]="'dd-MMM-yyyy'" nzSize="large" [nzDisabledDate]="disabledDates"></nz-range-picker>
+    <span class="pr-2"></span>
+
+    <a href="" (click)="removeFilter()">
+      <span nz-icon nzType="close" nzTheme="outline"></span>
     </a>
-    }
-    @else {
-    <a href="#" (click)="toggleFilters()">
-      <mat-icon>filter_list</mat-icon>
-    </a>
-    }
+
   </div>
 </div>
-<div class="dashboard-content-wrapper bg-blue-50">
-  @if(privacyData && privacyData.length > 0) {
-  <div class="grid grid-cols-6 gap-2 my-8">
-    <div class="col-span-6 p-4">
-      <div class="card">
-        <div class="card-header pb-4">
-          <p class="text-3xl font-bold">Privacy requests metrics</p>
+
+@switch (selectedTab) {
+  @case(0) {
+    <div class="dashboard-content-wrapper">
+      @if(privacyData && privacyData.length > 0) {
+      <div class="grid grid-cols-6 gap-2 my-8">
+        <div class="col-span-6 p-4">
+          <div class="card">
+            <div class="card-header pb-4">
+              <p class="text-2xl font-bold">Overall metrics</p>
+            </div>
+            <div class="card-body">
+              <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500">
+                <div class="col-span-1 border-r-2 border-gray-500 text-amber-700">
+                  <div class="card">
+                    <div class="card-header min-h-[8rem] text-center">
+                      <p class="text-2xl font-semibold p-8">Total</p>
+                    </div>
+                    <div class="card-body p-8 text-8xl text-center">
+                      <p>{{ requestStats.all }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-span-1 border-r-2 border-gray-500 text-emerald-700">
+                  <div class="card">
+                    <div class="card-header min-h-[8rem] text-center">
+                      <p class="text-2xl font-semibold p-8">Processed</p>
+                    </div>
+                    <div class="card-body p-8 text-8xl text-center">
+                      <p>{{ requestStats.completed }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-span-1 border-r-2 border-gray-500 text-blue-700">
+                  <div class="card">
+                    <div class="card-header min-h-[8rem] text-center">
+                      <p class="text-2xl font-semibold p-8">Non-Processed</p>
+                    </div>
+                    <div class="card-body p-8 text-8xl text-center">
+                      <p>{{ requestStats.pending }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-span-1 border-r-2 border-gray-500 text-slate-700">
+                  <div class="card">
+                    <div class="card-header min-h-[8rem] text-center">
+                      <p class="text-2xl font-semibold p-8">Rejected</p>
+                    </div>
+                    <div class="card-body p-8 text-8xl text-center">
+                      <p>{{ requestStats.rejected }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-span-2 rounded border-r-2 border-gray-500 px-4"
+                  [ngClass]="isSLADataUnavailable()? '':'py-8'">
+                  @if(isSLADataUnavailable()) {
+                  <div class="card">
+                    <div class="card-header min-h-[8rem] text-center">
+                      <p class="text-xl font-bold p-8">SLA Compliance</p>
+                    </div>
+                    <div class="card-body p-8 text-gray-500 text-base text-center">
+                      <p>No SLA data available</p>
+                    </div>
+                  </div>
+                  } @else {
+                  <div echarts [options]="slaChartOption" class="h-full"></div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
-          <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500">
-            <div class="col-span-1 border-r-2 border-gray-500 text-amber-700">
-              <div class="card">
-                <div class="card-header min-h-[8rem] text-center">
-                  <p class="text-2xl font-semibold p-8">Total</p>
-                </div>
-                <div class="card-body p-8 text-8xl text-center">
-                  <p>{{ requestStats.all }}</p>
-                </div>
-              </div>
+        <div class="col-span-2 p-4">
+          <!-- Request type distribution chart for Non-processed requests -->
+          <div class="card rounded border-2 border-gray-500 p-4">
+            <div class="card-body">
+              <div echarts [options]="requestTypeChartOption" class="h-full"></div>
             </div>
-            <div class="col-span-1 border-r-2 border-gray-500 text-emerald-700">
-              <div class="card">
-                <div class="card-header min-h-[8rem] text-center">
-                  <p class="text-2xl font-semibold p-8">Processed</p>
-                </div>
-                <div class="card-body p-8 text-8xl text-center">
-                  <p>{{ requestStats.completed }}</p>
-                </div>
-              </div>
+          </div>
+        </div>
+        <div class="col-span-4 p-4">
+          <!-- Barchart of pending request count by CurrentStage -->
+          <div class="card rounded border-2 border-gray-500 p-4">
+            <div class="card-body">
+              <div echarts [options]="nonProcessedRequestsByCurrentStageChartOption" class="h-full"></div>
             </div>
-            <div class="col-span-1 border-r-2 border-gray-500 text-blue-700">
-              <div class="card">
-                <div class="card-header min-h-[8rem] text-center">
-                  <p class="text-2xl font-semibold p-8">Non-Processed</p>
-                </div>
-                <div class="card-body p-8 text-8xl text-center">
-                  <p>{{ requestStats.pending }}</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-span-1 border-r-2 border-gray-500 text-slate-700">
-              <div class="card">
-                <div class="card-header min-h-[8rem] text-center">
-                  <p class="text-2xl font-semibold p-8">Rejected</p>
-                </div>
-                <div class="card-body p-8 text-8xl text-center">
-                  <p>{{ requestStats.rejected }}</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-span-2 rounded border-r-2 border-gray-500 px-4"
-              [ngClass]="isSLADataUnavailable()? '':'py-8'">
-              @if(isSLADataUnavailable()) {
-              <div class="card">
-                <div class="card-header min-h-[8rem] text-center">
-                  <p class="text-xl font-bold p-8">SLA Compliance</p>
-                </div>
-                <div class="card-body p-8 text-gray-500 text-base text-center">
-                  <p>No SLA data available</p>
-                </div>
-              </div>
-              } @else {
-              <div echarts [options]="slaChartOption" class="h-full"></div>
-              }
+          </div>
+        </div>
+        <div class="col-span-6 p-4">
+          <!-- Heatmap of service owners against request types for non-processed requests -->
+          <div class="card rounded border-2 border-gray-500 p-4">
+            <div class="card-body">
+              <div echarts [options]="serviceOwnerChartOption" class="h-full"></div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    <div class="col-span-2 p-4">
-      <!-- Request type distribution chart for Non-processed requests -->
-      <div class="card rounded border-2 border-gray-500 p-4">
-        <div class="card-body">
-          <div echarts [options]="requestTypeChartOption" class="h-full"></div>
+      } @else {
+      <!-- Display No data in a tailwind formatted center box -->
+      <div class="grid grid-cols-6 gap-16 text-xl my-8">
+        <div class="col-span-6 shadow-md p-4">
+          <div class="card">
+            <div class="card-header pb-4">
+              <p class="text-3xl font-bold">No data found</p>
+            </div>
+          </div>
         </div>
       </div>
+      }
     </div>
-    <div class="col-span-4 p-4">
-      <!-- Barchart of pending request count by CurrentStage -->
-      <div class="card rounded border-2 border-gray-500 p-4">
-        <div class="card-body">
-          <div echarts [options]="nonProcessedRequestsByCurrentStageChartOption" class="h-full"></div>
-        </div>
-      </div>
-    </div>
-    <div class="col-span-6 p-4">
-      <!-- Heatmap of service owners against request types for non-processed requests -->
-      <div class="card rounded border-2 border-gray-500 p-4">
-        <div class="card-body">
-          <div echarts [options]="serviceOwnerChartOption" class="h-full"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  } @else {
-  <!-- Display No data in a tailwind formatted center box -->
-  <div class="grid grid-cols-6 gap-16 text-xl my-8">
-    <div class="col-span-6 shadow-md p-4">
-      <div class="card">
-        <div class="card-header pb-4">
-          <p class="text-3xl font-bold">No data found</p>
-        </div>
-      </div>
-    </div>
-  </div>
   }
-</div>
+  @case (1) {
+    <span class="text-3xl font-bold">Processed metrics</span>
+  }
+}
 
 <!-- No data found container -->
 <!-- Privacy metrics - total requests, processed, non-processed -->

@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DashboardComponent } from './dashboard.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxEchartsModule } from 'ngx-echarts';
@@ -9,24 +8,27 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
 import { CloseOutline } from '@ant-design/icons-angular/icons';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { TracingComponent } from './tracing.component';
+import { NzTableModule } from 'ng-zorro-antd/table';
 
 @NgModule({
   declarations: [
-    DashboardComponent
+    TracingComponent
   ],
   exports: [
-    DashboardComponent
-  ], imports: [CommonModule,
+    TracingComponent
+  ], imports: [
+    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     SharedModule,
     NzSegmentedModule,
+    NzTableModule,
     NzIconModule.forChild([CloseOutline]),
     NzSelectModule,
-    NzDatePickerModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts'),
-    }),], providers: [provideHttpClient(withInterceptorsFromDi())]
+    }),
+  ], providers: [provideHttpClient(withInterceptorsFromDi())]
 })
-export class DashboardModule { }
+export class TracingModule { }

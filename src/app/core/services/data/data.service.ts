@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { IPrivacyData } from '../../models/interfaces/privacy-data';
 
 @Injectable({
@@ -8,9 +8,10 @@ import { IPrivacyData } from '../../models/interfaces/privacy-data';
 })
 export class DataService {
 
+  private _data: IPrivacyData[] = [];
   constructor(private http: HttpClient) { }
 
-  getStates() {
+  getStates(): { value: string, label: string }[] {
     return [
       { value: "CA", label: "California" },
       { value: "CO", label: "Colarado" },
@@ -21,7 +22,7 @@ export class DataService {
     ];
   }
 
-  getServices() {
+  getServices(): { value: string, label: string }[] {
     return [
       { value: "service-1", label: "Service 1" },
       { value: "service-2", label: "Service 2" },
@@ -31,8 +32,15 @@ export class DataService {
     ];
   }
 
+  getRequestTypes(): string[] {
+    // return only unique request types from the data
+    return this._data.map(data => data.requestType).filter((value, index, self) => self.indexOf(value) === index);
+  }
+
   getPrivacyData(): Observable<IPrivacyData[]> {
-    return this.http.get<IPrivacyData[]>('/assets/data/privacy-data.json');
+    return this.http.get<IPrivacyData[]>('/assets/data/privacy-data.json').pipe(
+      tap(data => this._data = data)
+    );
   }
 }
 

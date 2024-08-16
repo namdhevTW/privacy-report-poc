@@ -70,7 +70,7 @@ export class DashboardService {
       filteredData = filteredData.filter(d => d.state === selectedState);
     }
 
-    if (selectedRequestType && selectedRequestType !== 'all') {
+    if (selectedRequestType && selectedRequestType !== 'All') {
       filteredData = filteredData.filter(d => d.requestType === selectedRequestType);
     }
 

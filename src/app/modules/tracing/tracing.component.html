@@ -1,0 +1,27 @@
+<div class="p-8">
+  <nz-table nzBordered #tracingTable [nzData]="tableData">
+    <thead>
+      <tr>
+        @for (col of colDefs; track col) {
+        <th [nzSortFn]="col.sortFn" [nzSortOrder]="col.sortOrder" [nzSortFn]="col.sortFn"
+          [nzSortDirections]="col.sortDirections" [nzFilterMultiple]="col.filterMultiple" [nzFilters]="col.listOfFilter"
+          [nzShowFilter]="col.showFilter"
+          [nzFilterFn]="col.filterFn" scope="col" nzAlign="center">
+          {{col.name}}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let privData of tracingTable.data">
+        <td>{{ privData.requestId }}</td>
+        <td>{{ privData.requestType }}</td>
+        <td>{{ privData.currentStage }}</td>
+        <td>{{privData.serviceOwner}}</td>
+        <td>{{displayFullState(privData.state)}}</td>
+        <td>{{privData.slaDays}}</td>
+        <td>{{ privData.requestCreatedDate | date: 'dd-MMM-yyyy' }}</td>
+        <td>{{privData.requestCompletedDate | date: 'dd-MMM-yyyy' }}</td>
+      </tr>
+    </tbody>
+  </nz-table>
+</div>
