@@ -1,13 +1,25 @@
 <div class="p-8">
+  <div class="ml-auto">
+    <!-- Filter placeholder -->
+  </div>
   <nz-table nzBordered #tracingTable [nzData]="tableData">
     <thead>
       <tr>
         @for (col of colDefs; track col) {
-        <th [nzSortFn]="col.sortFn" [nzSortOrder]="col.sortOrder" [nzSortFn]="col.sortFn"
-          [nzSortDirections]="col.sortDirections" [nzFilterMultiple]="col.filterMultiple" [nzFilters]="col.listOfFilter"
-          [nzShowFilter]="col.showFilter"
-          [nzFilterFn]="col.filterFn" scope="col" nzAlign="center">
-          {{col.name}}</th>
+          @if (col.name === 'requestCreatedDate') {
+          <th [nzSortFn]="col.sortFn" [nzSortOrder]="col.sortOrder" [nzSortFn]="col.sortFn"
+            [nzSortDirections]="col.sortDirections" [nzFilterMultiple]="col.filterMultiple" [nzFilters]="col.listOfFilter"
+            [nzShowFilter]="col.showFilter"
+            [nzFilterFn]="col.filterFn" scope="col" nzAlign="center">
+            {{col.name}}</th>
+          }
+          @else {
+          <th [nzSortFn]="col.sortFn" [nzSortOrder]="col.sortOrder" [nzSortFn]="col.sortFn"
+            [nzSortDirections]="col.sortDirections" [nzFilterMultiple]="col.filterMultiple" [nzFilters]="col.listOfFilter"
+            [nzShowFilter]="col.showFilter"
+            [nzFilterFn]="col.filterFn" scope="col" nzAlign="center">
+            {{col.name}}</th>
+          }
         }
       </tr>
     </thead>

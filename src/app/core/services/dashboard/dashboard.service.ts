@@ -176,9 +176,8 @@ export class DashboardService {
           name: 'SLA Compliance',
           type: 'pie',
           height: '140%',
-          padAngle: 5,
           itemStyle: {
-            borderRadius: 10
+            borderRadius: 1
           },
           radius: ['40%', '70%'],
           center: ['50%', '70%'],

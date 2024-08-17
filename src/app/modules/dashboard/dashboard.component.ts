@@ -40,7 +40,14 @@ export class DashboardComponent {
 
   selectedStartDate!: Date;
   selectedEndDate!: Date;
-  presetQuickDateRanges = { Today: [new Date(), new Date()], 'Last 7 Days': [new Date(new Date().setDate(new Date().getDate() - 7)), new Date()], 'Last 30 Days': [new Date(new Date().setDate(new Date().getDate() - 30)), new Date()] };
+  presetQuickDateRanges = {
+    'Last 7 Days': [new Date(new Date().setDate(new Date().getDate() - 7)), new Date()],
+    'Last 30 Days': [new Date(new Date().setDate(new Date().getDate() - 30)), new Date()],
+    'Last 3 Months': [new Date(new Date().setDate(new Date().getDate() - 90)), new Date()],
+    'Last 6 Months': [new Date(new Date().setDate(new Date().getDate() - 180)), new Date()],
+    'Last 1 Year': [new Date(new Date().setDate(new Date().getDate() - 365)), new Date()],
+
+  };
 
   slaChartOption: EChartsOption = {};
   requestTypeChartOption: EChartsOption = {};
@@ -88,14 +95,6 @@ export class DashboardComponent {
     });
   }
 
-  changeStartDate(event: any) {
-    this.selectedStartDate = event.target.value;
-  }
-
-  changeEndDate(event: any) {
-    this.selectedEndDate = event.target.value;
-  }
-
   changeSelectedTab(tab: number) {
     this.selectedTab = tab;
   }
@@ -129,6 +128,17 @@ export class DashboardComponent {
       this.selectedEndDate = result[1];
 
       this.showDateRangeSelectionErrorStatus = this.disabledDates(this.selectedStartDate) || this.disabledDates(this.selectedEndDate);
+      this.applyFilter();
+    }
+  }
+
+  changeSelectedRequestCompletedDate(result: Date) {
+    if (Array.isArray(result)) {
+      this.selectedStartDate = result[0];
+      this.selectedEndDate = result[1];
+
+      this.showDateRangeSelectionErrorStatus = this.disabledDates(this.selectedStartDate) || this.disabledDates(this.selectedEndDate);
+      this.applyFilter();
     }
   }
 
@@ -140,8 +150,10 @@ export class DashboardComponent {
 
   removeFilter() {
     this.selectedState = 'all';
-    this.selectedService = 'all';
     this.selectedRequestType = 'All';
+    if (this.role === 'admin') {
+      this.selectedService = 'all';
+    }
     this.privacyData = this.dashboardService.removeDashboardFilters(this.selectedService);
     this.updateRequestStats(this.privacyData);
     this.setChartOptions();

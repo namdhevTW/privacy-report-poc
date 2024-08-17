@@ -26,10 +26,11 @@
 
     <!-- Request creation range picker -->
     <span class="text-lg pl-4 pr-2">Created Date: </span>
-    <nz-range-picker [nzRanges]="presetQuickDateRanges" ngModel (ngModelChange)="changeSelectedRequestCreatedDate($event)" [nzFormat]="'dd-MMM-yyyy'" nzSize="large" [nzDisabledDate]="disabledDates"></nz-range-picker>
+    <nz-range-picker [nzRanges]="presetQuickDateRanges" ngModel
+      (ngModelChange)="changeSelectedRequestCreatedDate($event)" [nzFormat]="'dd-MMM-yyyy'" nzSize="large" [nzDisabledDate]="disabledDates"></nz-range-picker>
     <span class="pr-2"></span>
 
-    <a href="" (click)="removeFilter()">
+    <a (click)="removeFilter()">
       <span nz-icon nzType="close" nzTheme="outline"></span>
     </a>
 
@@ -91,14 +92,9 @@
                 <div class="col-span-2 rounded border-r-2 border-gray-500 px-4"
                   [ngClass]="isSLADataUnavailable()? '':'py-8'">
                   @if(isSLADataUnavailable()) {
-                  <div class="card">
-                    <div class="card-header min-h-[8rem] text-center">
-                      <p class="text-xl font-bold p-8">SLA Compliance</p>
+                    <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
+                      <nz-empty nzNotFoundContent="SLA data is not available for the selected filter"></nz-empty>
                     </div>
-                    <div class="card-body p-8 text-gray-500 text-base text-center">
-                      <p>No SLA data available</p>
-                    </div>
-                  </div>
                   } @else {
                   <div echarts [options]="slaChartOption" class="h-full"></div>
                   }
@@ -110,38 +106,50 @@
         <div class="col-span-2 p-4">
           <!-- Request type distribution chart for Non-processed requests -->
           <div class="card rounded border-2 border-gray-500 p-4">
+            @if(requestStats.pending > 0) {
             <div class="card-body">
               <div echarts [options]="requestTypeChartOption" class="h-full"></div>
             </div>
+          } @else {
+            <div class="dnf-wrapper">
+              <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
+            </div>
+          }
           </div>
         </div>
         <div class="col-span-4 p-4">
           <!-- Barchart of pending request count by CurrentStage -->
           <div class="card rounded border-2 border-gray-500 p-4">
+          @if(requestStats.pending > 0) {
             <div class="card-body">
               <div echarts [options]="nonProcessedRequestsByCurrentStageChartOption" class="h-full"></div>
             </div>
-          </div>
+          } @else {
+            <div class="dnf-wrapper">
+              <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
+            </div>
+          }
+        </div>
         </div>
         <div class="col-span-6 p-4">
           <!-- Heatmap of service owners against request types for non-processed requests -->
           <div class="card rounded border-2 border-gray-500 p-4">
+            @if(requestStats.pending > 0) {
             <div class="card-body">
               <div echarts [options]="serviceOwnerChartOption" class="h-full"></div>
             </div>
+          } @else {
+            <div class="dnf-wrapper">
+              <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
+            </div>
+          }
           </div>
         </div>
       </div>
       } @else {
       <!-- Display No data in a tailwind formatted center box -->
-      <div class="grid grid-cols-6 gap-16 text-xl my-8">
-        <div class="col-span-6 shadow-md p-4">
-          <div class="card">
-            <div class="card-header pb-4">
-              <p class="text-3xl font-bold">No data found</p>
-            </div>
-          </div>
-        </div>
+      <div class="absolute top-1/2 left-1/2">
+        <nz-empty nzNotFoundContent="Data not found. Please retry with another filter"></nz-empty>
       </div>
       }
     </div>

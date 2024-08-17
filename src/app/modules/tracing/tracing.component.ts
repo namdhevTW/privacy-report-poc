@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { IPrivacyData } from '@app/core/models/interfaces/privacy-data';
+import { AuthService } from '@app/core/services/auth/auth.service';
 import { DataService } from '@app/core/services/data/data.service';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
 
@@ -104,7 +105,10 @@ export class TracingComponent {
 
   stateOptions: { value: string, label: string }[] = [];
 
-  constructor(private dataService: DataService) {
+  private role: string = 'admin';
+  private serviceOwner: string = '';
+
+  constructor(private dataService: DataService, private authService: AuthService) {
     this.stateOptions = this.dataService.getStates();
   }
 
@@ -112,7 +116,23 @@ export class TracingComponent {
   ngOnInit(): void {
     this.dataService.getPrivacyData().subscribe(data => {
       this.tableData = data;
+
+      this.role = this.authService.role;
+      this.authService.roleChangeSubject.subscribe(role => {
+        this.role = role;
+        if (this.role === 'service-owner') {
+          this.serviceOwner = this.authService.serviceOwner;
+          this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
+        } else {
+          this.serviceOwner = '';
+        }
+      });
+      this.authService.serviceOwnerChangeSubject.subscribe(serviceOwner => {
+        this.serviceOwner = serviceOwner;
+        this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
+      });
     });
+
   }
 
   displayFullState(state: string): string {
