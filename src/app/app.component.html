@@ -20,10 +20,10 @@
 <!--side menu-->
 <div class="fixed top-1/2 h-full">
   <ul nz-menu nzMode="inline" nzTheme="light" class="border-2 border-l-0 border-sky-500 bg-blend-lighten rounded">
-    <li nz-menu-item nz-tooltip nzTooltipTitle="Dashboard" nzSelected routerLink="/" style="margin-top: 0;">
+    <li nz-menu-item nz-tooltip nzTooltipTitle="Dashboard" [nzSelected]="isDashboardComponentCurrentlyLoaded()" routerLink="/" style="margin-top: 0;">
       <span nz-icon nzType="pie-chart" nzTheme="outline"></span>
     </li>
-    <li nz-menu-item nz-tooltip nzTooltipTitle="Tracing" routerLink="/tracing" style="margin-bottom: 0;">
+    <li nz-menu-item nz-tooltip nzTooltipTitle="Tracing" [nzSelected]="isTracingComponentCurrentlyLoaded()" routerLink="/tracing" style="margin-bottom: 0;">
       <span nz-icon nzType="table" nzTheme="outline" c></span>
     </li>
   </ul>

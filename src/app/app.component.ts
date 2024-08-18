@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { DataService } from '@core/services/data/data.service';
 import { AuthService } from '@core/services/auth/auth.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -14,7 +15,7 @@ export class AppComponent {
 
   selectedServiceOwner = '';
 
-  constructor(private dataService: DataService, private authService: AuthService) {
+  constructor(private dataService: DataService, private authService: AuthService, private route: ActivatedRoute) {
     document.title = 'Privacy reporting portal';
   }
 
@@ -34,5 +35,13 @@ export class AppComponent {
 
   toggleCollapsed(): void {
     this.isCollapsed = !this.isCollapsed;
+  }
+
+  isDashboardComponentCurrentlyLoaded(): boolean {
+    return this.route.snapshot.firstChild?.routeConfig?.component?.name === 'DashboardComponent';
+  }
+
+  isTracingComponentCurrentlyLoaded(): boolean {
+    return this.route.snapshot.firstChild?.routeConfig?.component?.name === 'TracingComponent';
   }
 }

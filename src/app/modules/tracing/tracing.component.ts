@@ -20,7 +20,50 @@ export class TracingComponent {
     filterMultiple: boolean;
     showFilter: boolean;
     sortDirections: NzTableSortOrder[];
-  }[] = [
+  }[] = [];
+
+  stateOptions: { value: string, label: string }[] = [];
+
+  private role: string = 'admin';
+  private serviceOwner: string = '';
+
+  constructor(private dataService: DataService, private authService: AuthService) {
+    this.stateOptions = this.dataService.getStates();
+  }
+
+
+  ngOnInit(): void {
+    this.dataService.getPrivacyData().subscribe(data => {
+      this.tableData = data;
+      this.role = this.authService.role;
+      this.setColumnDefs();
+
+      this.authService.roleChangeSubject.subscribe(role => {
+        this.role = role;
+        if (this.role === 'service-owner') {
+          this.serviceOwner = this.authService.serviceOwner;
+          this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
+        } else {
+          this.serviceOwner = '';
+          this.tableData = data;
+        }
+        this.setColumnDefs();
+      });
+      this.authService.serviceOwnerChangeSubject.subscribe(serviceOwner => {
+        this.serviceOwner = serviceOwner;
+        this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
+        this.setColumnDefs();
+      });
+    });
+
+  }
+
+  displayFullState(state: string): string {
+    return this.stateOptions.find(s => s.value === state)?.label || '';
+  }
+
+  private setColumnDefs(): void {
+    this.colDefs = [
       {
         name: 'Request ID',
         sortOrder: null,
@@ -58,7 +101,7 @@ export class TracingComponent {
         listOfFilter: this.dataService.getServices().map(s => ({ text: s.label, value: s.value })),
         filterFn: (value: string[], item: IPrivacyData) => value.some(v => item.serviceOwner === v),
         filterMultiple: true,
-        showFilter: true,
+        showFilter: this.isAdmin(),
         sortDirections: ['ascend', 'descend', null]
       },
       {
@@ -102,40 +145,9 @@ export class TracingComponent {
         sortDirections: ['ascend', 'descend ', null]
       }
     ];
-
-  stateOptions: { value: string, label: string }[] = [];
-
-  private role: string = 'admin';
-  private serviceOwner: string = '';
-
-  constructor(private dataService: DataService, private authService: AuthService) {
-    this.stateOptions = this.dataService.getStates();
   }
 
-
-  ngOnInit(): void {
-    this.dataService.getPrivacyData().subscribe(data => {
-      this.tableData = data;
-
-      this.role = this.authService.role;
-      this.authService.roleChangeSubject.subscribe(role => {
-        this.role = role;
-        if (this.role === 'service-owner') {
-          this.serviceOwner = this.authService.serviceOwner;
-          this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
-        } else {
-          this.serviceOwner = '';
-        }
-      });
-      this.authService.serviceOwnerChangeSubject.subscribe(serviceOwner => {
-        this.serviceOwner = serviceOwner;
-        this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
-      });
-    });
-
-  }
-
-  displayFullState(state: string): string {
-    return this.stateOptions.find(s => s.value === state)?.label || '';
+  private isAdmin(): boolean {
+    return this.role === 'admin';
   }
 }
