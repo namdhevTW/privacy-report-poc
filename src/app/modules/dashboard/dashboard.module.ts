@@ -11,6 +11,7 @@ import { CloseOutline } from '@ant-design/icons-angular/icons';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 
 @NgModule({
   declarations: [
@@ -26,6 +27,7 @@ import { NzEmptyModule } from 'ng-zorro-antd/empty';
     NzEmptyModule,
     NzIconModule.forChild([CloseOutline]),
     NzSelectModule,
+    NzToolTipModule,
     NzDatePickerModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts'),

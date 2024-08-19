@@ -3,6 +3,7 @@ import { EChartsOption } from 'echarts';
 import { IPrivacyData } from '@core/models/interfaces/privacy-data';
 import { DashboardService } from '@core/services/dashboard/dashboard.service';
 import { AuthService } from '@app/core/services/auth/auth.service';
+import { NzDatePickerComponent } from 'ng-zorro-antd/date-picker';
 
 @Component({
   selector: 'app-dashboard',
@@ -54,6 +55,8 @@ export class DashboardComponent {
   serviceOwnerChartOption: EChartsOption = {};
   nonProcessedRequestsByCurrentStageChartOption: EChartsOption = {};
 
+  _requestCreatedDateRangeControl: any;
+
   constructor(private dashboardService: DashboardService, private authService: AuthService) {
     this.states = this.dashboardService.fetchStateOptions();
     this.states.unshift({ value: 'all', label: 'All' });
@@ -76,6 +79,7 @@ export class DashboardComponent {
       }
       this.updateRequestStats(this.privacyData);
       this.setChartOptions();
+      this.setRequestCreatedDateRange();
     });
 
 
@@ -142,6 +146,10 @@ export class DashboardComponent {
     }
   }
 
+  storeRequestCreatedDateRangeControl(control: NzDatePickerComponent): void {
+    this._requestCreatedDateRangeControl = control;
+  }
+
   applyFilter() {
     this.privacyData = this.dashboardService.applyDashboardFilters(this.selectedService, this.selectedState, this.selectedRequestType, this.selectedStartDate, this.selectedEndDate);
     this.updateRequestStats(this.privacyData);
@@ -154,6 +162,11 @@ export class DashboardComponent {
     if (this.role === 'admin') {
       this.selectedService = 'all';
     }
+    if (this._requestCreatedDateRangeControl && this._requestCreatedDateRangeControl.rangePickerInputs && this._requestCreatedDateRangeControl.rangePickerInputs.first) {
+      this._requestCreatedDateRangeControl.rangePickerInputs.first.nativeElement.value = '';
+      this._requestCreatedDateRangeControl.rangePickerInputs.last.nativeElement.value = '';
+    }
+    this.setRequestCreatedDateRange();
     this.privacyData = this.dashboardService.removeDashboardFilters(this.selectedService);
     this.updateRequestStats(this.privacyData);
     this.setChartOptions();
@@ -168,6 +181,11 @@ export class DashboardComponent {
     this.requestTypeChartOption = this.dashboardService.fetchRequestTypePieChartOptions(this.privacyData);
     this.serviceOwnerChartOption = this.dashboardService.fetchServiceOwnerRequestTypeHeatMapChartOptions(this.privacyData);
     this.nonProcessedRequestsByCurrentStageChartOption = this.dashboardService.fetchNonProcessedRequestsByCurrentStageBarChartOption(this.privacyData);
+  }
+
+  private setRequestCreatedDateRange(): void {
+    this.selectedStartDate = new Date(2018, 1, 1);
+    this.selectedEndDate = new Date();
   }
 
   private updateRequestStats(data: IPrivacyData[]) {

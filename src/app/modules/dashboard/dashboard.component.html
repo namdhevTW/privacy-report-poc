@@ -26,11 +26,11 @@
 
     <!-- Request creation range picker -->
     <span class="text-lg pl-4 pr-2">Created Date: </span>
-    <nz-range-picker [nzRanges]="presetQuickDateRanges" ngModel
-      (ngModelChange)="changeSelectedRequestCreatedDate($event)" [nzFormat]="'dd-MMM-yyyy'" nzSize="large" [nzDisabledDate]="disabledDates"></nz-range-picker>
+    <nz-range-picker #requestCreatedDateRangePicker [nzRanges]="presetQuickDateRanges" ngModel
+      (ngModelChange)="changeSelectedRequestCreatedDate($event); storeRequestCreatedDateRangeControl(requestCreatedDateRangePicker)" [nzFormat]="'dd-MMM-yyyy'" nzSize="large" [nzDisabledDate]="disabledDates"></nz-range-picker>
     <span class="pr-2"></span>
 
-    <a (click)="removeFilter()">
+    <a nz-tooltip nzTooltipTitle="Remove all filters" (click)="removeFilter()">
       <span nz-icon nzType="close" nzTheme="outline"></span>
     </a>
 

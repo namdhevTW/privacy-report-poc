@@ -88,7 +88,7 @@ export class DashboardService {
   removeDashboardFilters(selectedServiceOwner: string): IPrivacyData[] {
     let filteredData = this.originalData;
 
-    if (selectedServiceOwner) {
+    if (selectedServiceOwner && selectedServiceOwner != 'all') {
       filteredData = this.filterDataByServiceOwner(filteredData, selectedServiceOwner);
     }
 
