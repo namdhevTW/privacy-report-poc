@@ -38,7 +38,7 @@ export class DataService {
   }
 
   getPrivacyData(): Observable<IPrivacyData[]> {
-    return this.http.get<IPrivacyData[]>('/assets/data/privacy-data.json').pipe(
+    return this.http.get<IPrivacyData[]>('../assets/data/privacy-data.json').pipe(
       tap(data => this._data = data)
     );
   }

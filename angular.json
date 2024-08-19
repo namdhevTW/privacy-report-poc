@@ -21,8 +21,7 @@
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": [
               "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
-              "src/styles.css",
-              "src/assets/css/styles.css"
+              "src/styles.css"
             ],
             "scripts": []
           },
@@ -79,8 +78,7 @@
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": [
               "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
-              "src/styles.css",
-              "src/assets/styles.css"
+              "src/styles.css"
             ],
             "scripts": []
           }
