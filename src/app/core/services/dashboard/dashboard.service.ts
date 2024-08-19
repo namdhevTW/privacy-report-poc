@@ -408,15 +408,19 @@ export class DashboardService {
         },
       },
       grid: {
-        height: '80%',
+        height: '75%',
         top: '20%',
         bottom: 'center',
-        left: 'start',
+        left: '5%',
+        right: '5%',
         containLabel: true,
       },
       xAxis: {
         type: 'category',
-        data: Object.keys(currentStageCounts),
+        data: Object.keys(currentStageCounts).map(key => key.replace(/ /g, '\n')),
+        axisTick: {
+          alignWithLabel: true,
+        },
         axisLabel: {
           fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
           fontSize: 12,
