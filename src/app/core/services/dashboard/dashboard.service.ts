@@ -58,8 +58,7 @@ export class DashboardService {
     return this.originalData.map(d => d.requestType).filter((value, index, self) => self.indexOf(value) === index);
   }
 
-
-  applyDashboardFilters(selectedServiceOwner: string, selectedState: string, selectedRequestType: string, selectedStartDate: Date, selectedEndDate: Date): IPrivacyData[] {
+  applyDashboardFilters(selectedServiceOwner: string, selectedState: string, selectedRequestType: string, selectedStartDate: Date, selectedEndDate: Date, consentModeOn: boolean): IPrivacyData[] {
     let filteredData = this.originalData;
 
     if (selectedServiceOwner && selectedServiceOwner !== 'all') {
@@ -80,6 +79,10 @@ export class DashboardService {
 
     if (selectedEndDate) {
       filteredData = filteredData.filter(d => new Date(d.requestCreatedDate) <= new Date(selectedEndDate));
+    }
+
+    if (consentModeOn) {
+      filteredData = filteredData.filter(d => d.requestType.includes('opt') || d.requestType.includes('non-discrimination'));
     }
 
     return filteredData;
@@ -381,6 +384,22 @@ export class DashboardService {
         return acc;
       }, {} as { [key: string]: number });
 
+    const serviceOwners = data.filter(d => this.isRequestPending(d)).map(s => s.serviceOwner);
+    const uniqueServiceOwnersWithPendingRequests = Array.from(new Set(serviceOwners));
+
+    let seriesCountData = uniqueServiceOwnersWithPendingRequests.map(serviceOwner => {
+      const counts = data.filter(d => this.isRequestPending(d) && d.serviceOwner === serviceOwner && serviceOwner != 'None').map(d => d.currentStage).reduce((acc,curr) => {
+        acc[curr] = (acc[curr] || 0) + 1;
+        return acc;
+      }, {} as {[key:string]: number});
+
+      return {
+        label: serviceOwner,
+        data: Object.values(counts),
+        stack: Object.keys(counts),
+      };
+    });
+
     return {
       title: {
         text: 'Non-processed Requests by Current Stage',
@@ -433,10 +452,40 @@ export class DashboardService {
           fontSize: 12,
         },
       },
-      series: [
+      series: 
+      // seriesCountData.map( (scd, idx) => {
+      //   return {
+      //       name: scd.label,
+      //       type: 'bar',
+      //       stack: Object.keys(currentStageCounts)[idx],
+      //       showBackground: true,
+      //       backgroundStyle: {
+      //         color: 'rgba(220, 220, 220, 0.8)',
+      //       },
+      //       label: {
+      //         show: true,
+      //         position: 'inside',
+      //         fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+      //         fontSize: 12,
+      //       },
+      //       data: scd.data,
+      //       itemStyle: {
+      //         borderRadius: 2,
+      //       },
+      //       emphasis: {
+      //         itemStyle: {
+      //           shadowBlur: 10,
+      //           shadowColor: 'rgba(0, 0, 0, 0.5)',
+      //         },
+      //       },
+      //   }
+      // })
+      
+      [
         {
           name: 'Non-processed Requests',
           type: 'bar',
+          stack: 'stage',
           showBackground: true,
           backgroundStyle: {
             color: 'rgba(220, 220, 220, 0.8)',
@@ -459,6 +508,7 @@ export class DashboardService {
           },
         },
       ],
+
     };
   }
 

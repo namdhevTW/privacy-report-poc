@@ -1,10 +1,15 @@
-<div class="grid grid-cols-6 gap-8 items-center py-4">
+<div class="grid grid-cols-6 gap-8 items-center p-3 border rounded bg-gray-100 mt-3">
   <div class="col-span-1 mr-auto">
     <nz-segmented [nzOptions]="['Overall metrics', 'Processed metrics']" [(ngModel)]="selectedTab" (ngModelChange)="changeSelectedTab($event)" nzSize="large"></nz-segmented>
   </div>
   <div class="col-span-5 ml-auto">
+    <!-- Consent mode -->
+    <span class="flex items-center">
+      <span class="text-lg pr-2">Consent mode: </span> 
+      <nz-switch [(ngModel)]="consentModeOn" (ngModelChange)="applyFilter()"></nz-switch>
+
     <!--State options-->
-    <span class="text-lg pr-2">State: </span>
+    <span class="text-lg pr-2 pl-4">State: </span>
     <nz-select [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedState" (ngModelChange)="changeSelectedState($event); applyFilter()" nzSize="large">
       <nz-option *ngFor="let state of states" [nzValue]="state.value" [nzLabel]="state.label"></nz-option>
     </nz-select>
@@ -33,16 +38,16 @@
     <a nz-tooltip nzTooltipTitle="Remove all filters" (click)="removeFilter()">
       <span nz-icon nzType="close" nzTheme="outline"></span>
     </a>
-
+  </span>
   </div>
 </div>
 
 @switch (selectedTab) {
   @case(0) {
-    <div class="dashboard-content-wrapper">
+    <div class="dashboard-content-wrapper  bg-gray-100">
       @if(privacyData && privacyData.length > 0) {
-      <div class="grid grid-cols-6 gap-2 my-8">
-        <div class="col-span-6 p-4">
+      <div class="grid grid-cols-6 gap-2 mb-2">
+        <div class="col-span-6 p-3">
           <div class="card">
             <div class="card-header pb-4">
               <p class="text-2xl font-bold">Overall metrics</p>
@@ -54,7 +59,7 @@
                     <div class="card-header min-h-[8rem] text-center">
                       <p class="text-2xl font-semibold p-8">Total</p>
                     </div>
-                    <div class="card-body p-8 text-8xl text-center">
+                    <div class="card-body p-8 text-7xl text-center">
                       <p>{{ requestStats.all }}</p>
                     </div>
                   </div>
@@ -64,7 +69,7 @@
                     <div class="card-header min-h-[8rem] text-center">
                       <p class="text-2xl font-semibold p-8">Processed</p>
                     </div>
-                    <div class="card-body p-8 text-8xl text-center">
+                    <div class="card-body p-8 text-7xl text-center">
                       <p>{{ requestStats.completed }}</p>
                     </div>
                   </div>
@@ -74,7 +79,7 @@
                     <div class="card-header min-h-[8rem] text-center">
                       <p class="text-2xl font-semibold p-8">Non-Processed</p>
                     </div>
-                    <div class="card-body p-8 text-8xl text-center">
+                    <div class="card-body p-8 text-7xl text-center">
                       <p>{{ requestStats.pending }}</p>
                     </div>
                   </div>
@@ -84,7 +89,7 @@
                     <div class="card-header min-h-[8rem] text-center">
                       <p class="text-2xl font-semibold p-8">Rejected</p>
                     </div>
-                    <div class="card-body p-8 text-8xl text-center">
+                    <div class="card-body p-8 text-7xl text-center">
                       <p>{{ requestStats.rejected }}</p>
                     </div>
                   </div>
@@ -103,9 +108,9 @@
             </div>
           </div>
         </div>
-        <div class="col-span-2 p-4">
+        <div class="col-span-2 p-3">
           <!-- Request type distribution chart for Non-processed requests -->
-          <div class="card rounded border-2 border-gray-500 p-4">
+          <div class="card rounded border-2 border-gray-500 p-3">
             @if(requestStats.pending > 0) {
             <div class="card-body">
               <div echarts [options]="requestTypeChartOption" class="h-full"></div>
@@ -117,9 +122,9 @@
           }
           </div>
         </div>
-        <div class="col-span-4 p-4">
+        <div class="col-span-4 p-3">
           <!-- Barchart of pending request count by CurrentStage -->
-          <div class="card rounded border-2 border-gray-500 p-4">
+          <div class="card rounded border-2 border-gray-500 p-3">
           @if(requestStats.pending > 0) {
             <div class="card-body">
               <div echarts [options]="nonProcessedRequestsByCurrentStageChartOption" class="h-full"></div>
@@ -131,9 +136,9 @@
           }
         </div>
         </div>
-        <div class="col-span-6 p-4">
+        <div class="col-span-6 p-3">
           <!-- Heatmap of service owners against request types for non-processed requests -->
-          <div class="card rounded border-2 border-gray-500 p-4">
+          <div class="card rounded border-2 border-gray-500 p-3">
             @if(requestStats.pending > 0) {
             <div class="card-body">
               <div echarts [options]="serviceOwnerChartOption" class="h-full"></div>
@@ -158,9 +163,3 @@
     <span class="text-3xl font-bold">Processed metrics</span>
   }
 }
-
-<!-- No data found container -->
-<!-- Privacy metrics - total requests, processed, non-processed -->
-<!-- Based on service owner selection, the privacy metrics should contain link to display tracking tab with appropriate service-owner pending requests -->
-<!-- Consent based request numbers - total, processed & non-processed with service-owner selection and tracking capability -->
-<!-- SLA Compliance metrics - Total requests processed under SLA, Total requests that breached SLA - Admin only -->

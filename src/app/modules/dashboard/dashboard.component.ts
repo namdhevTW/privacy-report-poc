@@ -30,7 +30,6 @@ export class DashboardComponent {
     optOutBreached: 0
   };
 
-  showDateRangeSelectionErrorStatus = false;
   services: { value: string, label: string }[] = [];
   states: { value: string, label: string }[] = [];
   requestTypes: string[] = [];
@@ -38,6 +37,7 @@ export class DashboardComponent {
   selectedService: string = 'all';
   selectedRequestType: string = 'All';
   privacyData: IPrivacyData[] = [];
+  consentModeOn: boolean =false;
 
   selectedStartDate!: Date;
   selectedEndDate!: Date;
@@ -79,7 +79,7 @@ export class DashboardComponent {
       }
       this.updateRequestStats(this.privacyData);
       this.setChartOptions();
-      this.setRequestCreatedDateRange();
+      this.setDefaultRequestCreatedDateRange();
     });
 
 
@@ -103,17 +103,6 @@ export class DashboardComponent {
     this.selectedTab = tab;
   }
 
-  isEndDateValid(): boolean {
-    if (this.selectedStartDate && this.selectedEndDate > new Date()) {
-      return false
-    }
-    return true;
-  }
-
-  getUniqueRequestTypes(): string[] {
-    return this.privacyData.map(d => d.requestType).filter((value, index, self) => self.indexOf(value) === index);
-  }
-
   changeSelectedState(stateSelected: string) {
     this.selectedState = stateSelected;
   }
@@ -128,10 +117,12 @@ export class DashboardComponent {
 
   changeSelectedRequestCreatedDate(result: Date) {
     if (Array.isArray(result)) {
-      this.selectedStartDate = result[0];
-      this.selectedEndDate = result[1];
-
-      this.showDateRangeSelectionErrorStatus = this.disabledDates(this.selectedStartDate) || this.disabledDates(this.selectedEndDate);
+      if (result.length > 0) {
+        this.selectedStartDate = result[0];
+        this.selectedEndDate = result[1];
+      } else {
+        this.setDefaultRequestCreatedDateRange();
+      }
       this.applyFilter();
     }
   }
@@ -141,9 +132,12 @@ export class DashboardComponent {
       this.selectedStartDate = result[0];
       this.selectedEndDate = result[1];
 
-      this.showDateRangeSelectionErrorStatus = this.disabledDates(this.selectedStartDate) || this.disabledDates(this.selectedEndDate);
       this.applyFilter();
     }
+  }
+
+  isSLADataUnavailable(): boolean {
+    return this.requestStats.nearingSLAInAWeek === 0 && this.requestStats.breached === 0 && this.requestStats.inSLA === 0;
   }
 
   storeRequestCreatedDateRangeControl(control: NzDatePickerComponent): void {
@@ -151,7 +145,7 @@ export class DashboardComponent {
   }
 
   applyFilter() {
-    this.privacyData = this.dashboardService.applyDashboardFilters(this.selectedService, this.selectedState, this.selectedRequestType, this.selectedStartDate, this.selectedEndDate);
+    this.privacyData = this.dashboardService.applyDashboardFilters(this.selectedService, this.selectedState, this.selectedRequestType, this.selectedStartDate, this.selectedEndDate, this.consentModeOn);
     this.updateRequestStats(this.privacyData);
     this.setChartOptions();
   }
@@ -159,21 +153,22 @@ export class DashboardComponent {
   removeFilter() {
     this.selectedState = 'all';
     this.selectedRequestType = 'All';
+    this.consentModeOn = false;
     if (this.role === 'admin') {
       this.selectedService = 'all';
     }
     if (this._requestCreatedDateRangeControl && this._requestCreatedDateRangeControl.rangePickerInputs && this._requestCreatedDateRangeControl.rangePickerInputs.first) {
-      this._requestCreatedDateRangeControl.rangePickerInputs.first.nativeElement.value = '';
-      this._requestCreatedDateRangeControl.rangePickerInputs.last.nativeElement.value = '';
+      this.clearRequestCreatedDateInputs();
     }
-    this.setRequestCreatedDateRange();
+    this.setDefaultRequestCreatedDateRange();
     this.privacyData = this.dashboardService.removeDashboardFilters(this.selectedService);
     this.updateRequestStats(this.privacyData);
     this.setChartOptions();
   }
 
-  isSLADataUnavailable(): boolean {
-    return this.requestStats.nearingSLAInAWeek === 0 && this.requestStats.breached === 0 && this.requestStats.inSLA === 0;
+  private clearRequestCreatedDateInputs() {
+    this._requestCreatedDateRangeControl.rangePickerInputs.first.nativeElement.value = '';
+    this._requestCreatedDateRangeControl.rangePickerInputs.last.nativeElement.value = '';
   }
 
   private setChartOptions(): void {
@@ -183,7 +178,7 @@ export class DashboardComponent {
     this.nonProcessedRequestsByCurrentStageChartOption = this.dashboardService.fetchNonProcessedRequestsByCurrentStageBarChartOption(this.privacyData);
   }
 
-  private setRequestCreatedDateRange(): void {
+  private setDefaultRequestCreatedDateRange(): void {
     this.selectedStartDate = new Date(2018, 1, 1);
     this.selectedEndDate = new Date();
   }

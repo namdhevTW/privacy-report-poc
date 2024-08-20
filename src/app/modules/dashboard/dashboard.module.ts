@@ -12,6 +12,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 
 @NgModule({
   declarations: [
@@ -27,6 +28,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
     NzEmptyModule,
     NzIconModule.forChild([CloseOutline]),
     NzSelectModule,
+    NzSwitchModule,
     NzToolTipModule,
     NzDatePickerModule,
     NgxEchartsModule.forRoot({
