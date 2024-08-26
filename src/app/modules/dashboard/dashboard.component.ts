@@ -22,12 +22,6 @@ export class DashboardComponent {
     inSLA: 0,
     nearingSLAInAWeek: 0,
     breached: 0,
-    allOptOuts: 0,
-    optOutCompleted: 0,
-    optOutPending: 0,
-    optOutRejected: 0,
-    optOutNearingSLAInAWeek: 0,
-    optOutBreached: 0
   };
 
   services: { value: string, label: string }[] = [];
@@ -37,7 +31,7 @@ export class DashboardComponent {
   selectedService: string = 'all';
   selectedRequestType: string = 'All';
   privacyData: IPrivacyData[] = [];
-  consentModeOn: boolean =false;
+  consentModeOn: boolean = false;
 
   selectedStartDate!: Date;
   selectedEndDate!: Date;
@@ -50,6 +44,7 @@ export class DashboardComponent {
 
   };
 
+  pendingRequestsByServiceOwnerChartOption: EChartsOption = {};
   slaChartOption: EChartsOption = {};
   requestTypeChartOption: EChartsOption = {};
   serviceOwnerChartOption: EChartsOption = {};
@@ -144,6 +139,10 @@ export class DashboardComponent {
     this._requestCreatedDateRangeControl = control;
   }
 
+  onBarChartClickEvent(event: any): void {
+    console.log(event);
+  }
+
   applyFilter() {
     this.privacyData = this.dashboardService.applyDashboardFilters(this.selectedService, this.selectedState, this.selectedRequestType, this.selectedStartDate, this.selectedEndDate, this.consentModeOn);
     this.updateRequestStats(this.privacyData);
@@ -176,6 +175,7 @@ export class DashboardComponent {
     this.requestTypeChartOption = this.dashboardService.fetchRequestTypePieChartOptions(this.privacyData);
     this.serviceOwnerChartOption = this.dashboardService.fetchServiceOwnerRequestTypeHeatMapChartOptions(this.privacyData);
     this.nonProcessedRequestsByCurrentStageChartOption = this.dashboardService.fetchNonProcessedRequestsByCurrentStageBarChartOption(this.privacyData);
+    this.pendingRequestsByServiceOwnerChartOption = this.dashboardService.fetchPendingRequestsDistributionByServiceOwner(this.privacyData);
   }
 
   private setDefaultRequestCreatedDateRange(): void {

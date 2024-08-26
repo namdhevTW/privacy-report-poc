@@ -36,12 +36,6 @@ export class DashboardService {
       inSLA: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) >= 7).length,
       nearingSLAInAWeek: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7).length,
       breached: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) < 0).length,
-      allOptOuts: data.filter(d => this.isOptOutRequest(d)).length,
-      optOutCompleted: data.filter(d => this.isOptOutRequest(d) && this.isRequestCompleted(d)).length,
-      optOutPending: data.filter(d => this.isOptOutRequest(d) && this.isRequestPending(d)).length,
-      optOutRejected: data.filter(d => this.isOptOutRequest(d) && this.isRequestRejected(d)).length,
-      optOutNearingSLAInAWeek: data.filter(d => this.isOptOutRequest(d) && this.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7).length,
-      optOutBreached: data.filter(d => this.isOptOutRequest(d) && this.isRequestPending(d) && Number(d.slaDays) < 0).length
     };
     return totals;
   }
@@ -146,28 +140,86 @@ export class DashboardService {
     return result;
   }
 
+  fetchPendingRequestsDistributionByServiceOwner(data: IPrivacyData[]): EChartsOption {
+    const serviceOwners = this.fetchServiceOwners().slice(0, 5);
+
+    return {
+      title: {
+        text: 'Non-processed Requests by Service Owner',
+        subtext: 'Top 5 Service owners with non-processed requests',
+        textStyle: this.getFontBasedStyle(20),
+        subtextStyle: this.getFontBasedStyle(16),
+        left: 'center',
+      },
+      tooltip: {
+        trigger: 'item',
+        formatter: '{b} : {c}',
+        textStyle: this.getFontBasedStyle(14),
+      },
+      grid: {
+        height: '62.5%',
+        top: '29%',
+      },
+      xAxis: {
+        type: 'category',
+        data: serviceOwners.map(s => s.label),
+        axisTick: {
+          alignWithLabel: true,
+        },
+        axisLabel: this.getFontBasedStyle(),
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: this.getFontBasedStyle(),
+      },
+      series: [
+        {
+          name: 'Non-processed Requests',
+          type: 'bar',
+          showBackground: true,
+          itemStyle: {
+            color: '#ef4444',
+            borderRadius: [8, 8, 0, 0],
+            borderWidth: 2,
+          },
+          backgroundStyle: {
+            color: 'rgba(220, 220, 220, 0.8)',
+          },
+          data: serviceOwners.map(s => {
+            const count = data.filter(d => d.serviceOwner === s.value && this.isRequestPending(d)).length;
+            return count;
+          }).sort((a, b) => b - a),
+          label: {
+            show: true,
+            position: 'inside',
+            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: 14,
+            fontWeight: 'bold',
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)',
+            },
+          },
+        },
+      ],
+    };
+  }
+
   fetchSLAComplianceChartOptions(stats: IPrivacyRequestStats): EChartsOption {
     return {
       title: {
         text: "SLA Compliance",
         subtext: "SLA compliance of non-processed requests",
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 20,
-        },
-        subtextStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 16,
-        },
+        textStyle: this.getFontBasedStyle(20),
+        subtextStyle: this.getFontBasedStyle(16),
         left: "center",
       },
       tooltip: {
         trigger: 'item',
         formatter: '{a} <br/>{b} : {c} ({d}%)',
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 16,
-        },
+        textStyle: this.getFontBasedStyle(16),
       },
       calculable: true,
       itemStyle: {
@@ -198,8 +250,7 @@ export class DashboardService {
             fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
             fontSize: 13,
           },
-          color: ["#047857", "#facc15", "#dc2626"],
-          // color: ["rgb(16 185 129)", "rgb(253 224 71)", "rgb(248 113 113)"],
+          color: ['#10b981', '#facc15', '#ef4444'],
           data: [
             { value: stats.inSLA, name: 'Compliant' },
             { value: stats.nearingSLAInAWeek, name: 'Nearing breach' },
@@ -218,10 +269,7 @@ export class DashboardService {
       title: {
         text: 'Request type distribution',
         subtext: `Request type distribution for non-processed requests`,
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 20,
-        },
+        textStyle: this.getFontBasedStyle(20),
         subtextStyle: {
           fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
           fontSize: 16,
@@ -233,10 +281,7 @@ export class DashboardService {
       tooltip: {
         trigger: 'item',
         formatter: '{b} : <br/> {c} ({d}%)',
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 14,
-        },
+        textStyle: this.getFontBasedStyle(14),
       },
       calculable: true,
       itemStyle: {
@@ -248,10 +293,7 @@ export class DashboardService {
         bottom: 0,
         left: 0,
         data: this.getUniquePendingRequestTypesWithCount(data).map(d => d.name),
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 14,
-        },
+        textStyle: this.getFontBasedStyle(14),
       },
       series: [
         {
@@ -262,6 +304,7 @@ export class DashboardService {
             borderRadius: 15,
             borderWidth: 0.5
           },
+          color: ['#10b981', '#facc15', '#ef4444', '#3b82f6', '#64748b'],
           radius: ['35%', '45%'],
           // color: ['#047857', '#facc15', '#dc2626'],
           label: {
@@ -286,10 +329,7 @@ export class DashboardService {
       title: {
         text: 'Non-processed Request types per Service Owner',
         subtext: `Non-processed Request types per Service Owner for the non-processed requests`,
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 20,
-        },
+        textStyle: this.getFontBasedStyle(20),
         subtextStyle: {
           fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
           fontSize: 16,
@@ -300,10 +340,7 @@ export class DashboardService {
       },
       tooltip: {
         position: 'top',
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 14,
-        },
+        textStyle: this.getFontBasedStyle(14),
       },
       grid: {
         height: '60%',
@@ -317,10 +354,7 @@ export class DashboardService {
         splitArea: {
           show: true,
         },
-        axisLabel: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 12,
-        },
+        axisLabel: this.getFontBasedStyle(12),
       },
       yAxis: {
         type: 'category',
@@ -328,10 +362,7 @@ export class DashboardService {
         splitArea: {
           show: true,
         },
-        axisLabel: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 12,
-        },
+        axisLabel: this.getFontBasedStyle(12)
       },
       visualMap: {
         min: 0,
@@ -342,12 +373,9 @@ export class DashboardService {
         orient: 'horizontal',
         left: 'center',
         bottom: '5%',
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 12,
-        },
+        textStyle: this.getFontBasedStyle(12),
         inRange: {
-          color: ['#047857', '#facc15', '#dc2626'],
+          color: ['#10b981', '#facc15', '#ef4444'],
         },
       },
       series: [
@@ -384,30 +412,11 @@ export class DashboardService {
         return acc;
       }, {} as { [key: string]: number });
 
-    const serviceOwners = data.filter(d => this.isRequestPending(d)).map(s => s.serviceOwner);
-    const uniqueServiceOwnersWithPendingRequests = Array.from(new Set(serviceOwners));
-
-    let seriesCountData = uniqueServiceOwnersWithPendingRequests.map(serviceOwner => {
-      const counts = data.filter(d => this.isRequestPending(d) && d.serviceOwner === serviceOwner && serviceOwner != 'None').map(d => d.currentStage).reduce((acc,curr) => {
-        acc[curr] = (acc[curr] || 0) + 1;
-        return acc;
-      }, {} as {[key:string]: number});
-
-      return {
-        label: serviceOwner,
-        data: Object.values(counts),
-        stack: Object.keys(counts),
-      };
-    });
-
     return {
       title: {
         text: 'Non-processed Requests by Current Stage',
-        subtext: 'Non-processed Requests by Current Stage',
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 20,
-        },
+        subtext: 'Top 10 stages of non-processed requests',
+        textStyle: this.getFontBasedStyle(20),
         subtextStyle: {
           fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
           fontSize: 16,
@@ -421,10 +430,7 @@ export class DashboardService {
         axisPointer: {
           type: 'shadow',
         },
-        textStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 14,
-        },
+        textStyle: this.getFontBasedStyle(14),
       },
       grid: {
         height: '75%',
@@ -440,74 +446,38 @@ export class DashboardService {
         axisTick: {
           alignWithLabel: true,
         },
-        axisLabel: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 12,
-        },
+        axisLabel: this.getFontBasedStyle(12),
       },
       yAxis: {
         type: 'value',
-        axisLabel: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 12,
-        },
+        axisLabel: this.getFontBasedStyle(12),
       },
-      series: 
-      // seriesCountData.map( (scd, idx) => {
-      //   return {
-      //       name: scd.label,
-      //       type: 'bar',
-      //       stack: Object.keys(currentStageCounts)[idx],
-      //       showBackground: true,
-      //       backgroundStyle: {
-      //         color: 'rgba(220, 220, 220, 0.8)',
-      //       },
-      //       label: {
-      //         show: true,
-      //         position: 'inside',
-      //         fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-      //         fontSize: 12,
-      //       },
-      //       data: scd.data,
-      //       itemStyle: {
-      //         borderRadius: 2,
-      //       },
-      //       emphasis: {
-      //         itemStyle: {
-      //           shadowBlur: 10,
-      //           shadowColor: 'rgba(0, 0, 0, 0.5)',
-      //         },
-      //       },
-      //   }
-      // })
-      
-      [
-        {
-          name: 'Non-processed Requests',
-          type: 'bar',
-          stack: 'stage',
-          showBackground: true,
-          backgroundStyle: {
-            color: 'rgba(220, 220, 220, 0.8)',
-          },
-          label: {
-            show: true,
-            position: 'inside',
-            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: 12,
-          },
-          data: Object.values(currentStageCounts),
-          itemStyle: {
-            borderRadius: 2,
-          },
-          emphasis: {
+      series:
+        [
+          {
+            name: 'Non-processed Requests',
+            type: 'bar',
+            label: {
+              show: true,
+              position: 'inside',
+              fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+              fontSize: 14,
+              fontWeight: 'bold',
+            },
             itemStyle: {
-              shadowBlur: 10,
-              shadowColor: 'rgba(0, 0, 0, 0.5)',
+              color: '#ef4444',
+              borderRadius: [8, 8, 0, 0],
+              borderWidth: 2,
+            },
+            data: Object.values(currentStageCounts),
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowColor: 'rgba(0, 0, 0, 0.5)',
+              },
             },
           },
-        },
-      ],
+        ],
 
     };
   }
@@ -522,6 +492,14 @@ export class DashboardService {
 
   private isRequestPending(data: IPrivacyData): boolean {
     return !(this.isRequestCompleted(data) || this.isRequestRejected(data));
+  }
+
+  private getFontBasedStyle(fntSize = 12): any {
+    return {
+      fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontSize: fntSize,
+      align: 'center',
+    };
   }
 
   private isOptOutRequest(data: IPrivacyData): boolean {

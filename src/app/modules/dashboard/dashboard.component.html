@@ -5,7 +5,7 @@
   <div class="col-span-5 ml-auto">
     <!-- Consent mode -->
     <span class="flex items-center">
-      <span class="text-lg pr-2">Consent mode: </span> 
+      <span class="text-lg pr-2">Consent mode: </span>
       <nz-switch [(ngModel)]="consentModeOn" (ngModelChange)="applyFilter()"></nz-switch>
 
     <!--State options-->
@@ -49,59 +49,48 @@
       <div class="grid grid-cols-6 gap-2 mb-2">
         <div class="col-span-6 p-3">
           <div class="card">
-            <div class="card-header pb-4">
-              <p class="text-2xl font-bold">Overall metrics</p>
-            </div>
             <div class="card-body">
               <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500">
-                <div class="col-span-1 border-r-2 border-gray-500 text-amber-700">
-                  <div class="card">
-                    <div class="card-header min-h-[8rem] text-center">
-                      <p class="text-2xl font-semibold p-8">Total</p>
-                    </div>
-                    <div class="card-body p-8 text-7xl text-center">
-                      <p>{{ requestStats.all }}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-span-1 border-r-2 border-gray-500 text-emerald-700">
-                  <div class="card">
-                    <div class="card-header min-h-[8rem] text-center">
-                      <p class="text-2xl font-semibold p-8">Processed</p>
-                    </div>
-                    <div class="card-body p-8 text-7xl text-center">
-                      <p>{{ requestStats.completed }}</p>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-span-1 border-r-2 border-gray-500 text-blue-700">
-                  <div class="card">
-                    <div class="card-header min-h-[8rem] text-center">
-                      <p class="text-2xl font-semibold p-8">Non-Processed</p>
-                    </div>
-                    <div class="card-body p-8 text-7xl text-center">
-                      <p>{{ requestStats.pending }}</p>
+                <div class="col-span-2 py-4">
+                  <div class="flex flex-col items-center justify-center h-full p-2">
+                    <div class="text-xl font-bold">Request stats</div>
+                    <div class="text-[1rem] text-slate-500">Overall stats for the applied filter</div>
+                    <div class="grid grid-cols-4 py-10 gap-4 mt-4">
+                      <div class="flex flex-col items-center bg-blue-500 text-white border rounded p-2 py-5">
+                        <div class="text-3xl font-bold ">{{requestStats.all}}</div>
+                        <div class="text-lg">All</div>
+                      </div>
+                      <div class="flex flex-col items-center bg-red-500 text-white border rounded p-2 py-5">
+                        <div class="text-3xl font-bold">{{requestStats.pending}}</div>
+                        <div class="text-lg">Pending</div>
+                      </div>
+                      <div class="flex flex-col items-center bg-emerald-500 text-white rounded p-2 py-5">
+                        <div class="text-3xl font-bold">{{requestStats.completed}}</div>
+                        <div class="text-lg">Completed</div>
+                      </div>
+                      <div class="flex flex-col flex-1 items-center bg-slate-500 text-white rounded p-2 py-5">
+                        <div class="text-3xl font-bold">{{requestStats.rejected}}</div>
+                        <div class="text-lg">Rejected</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div class="col-span-1 border-r-2 border-gray-500 text-slate-700">
-                  <div class="card">
-                    <div class="card-header min-h-[8rem] text-center">
-                      <p class="text-2xl font-semibold p-8">Rejected</p>
+                <div class="col-span-2 p-4">
+                  @if(requestStats.pending > 0) {
+                    <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full py-2"></div>
+                  } @else {
+                    <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
+                      <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
                     </div>
-                    <div class="card-body p-8 text-7xl text-center">
-                      <p>{{ requestStats.rejected }}</p>
-                    </div>
-                  </div>
+                  }
                 </div>
-                <div class="col-span-2 rounded border-r-2 border-gray-500 px-4"
-                  [ngClass]="isSLADataUnavailable()? '':'py-8'">
+                <div class="col-span-2 rounded border-r-2 border-gray-500 p-4">
                   @if(isSLADataUnavailable()) {
                     <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
                       <nz-empty nzNotFoundContent="SLA data is not available for the selected filter"></nz-empty>
                     </div>
                   } @else {
-                  <div echarts [options]="slaChartOption" class="h-full"></div>
+                  <div echarts [options]="slaChartOption" class="h-full py-2"></div>
                   }
                 </div>
               </div>
@@ -127,7 +116,7 @@
           <div class="card rounded border-2 border-gray-500 p-3">
           @if(requestStats.pending > 0) {
             <div class="card-body">
-              <div echarts [options]="nonProcessedRequestsByCurrentStageChartOption" class="h-full"></div>
+              <div echarts [options]="nonProcessedRequestsByCurrentStageChartOption" (chartClick)="onBarChartClickEvent($event)" class="h-full"></div>
             </div>
           } @else {
             <div class="dnf-wrapper">

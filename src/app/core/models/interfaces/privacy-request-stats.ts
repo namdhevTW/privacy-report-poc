@@ -6,10 +6,4 @@ export interface IPrivacyRequestStats {
   inSLA: number;
   nearingSLAInAWeek: number;
   breached: number;
-  allOptOuts: number;
-  optOutCompleted: number;
-  optOutPending: number;
-  optOutRejected: number;
-  optOutNearingSLAInAWeek: number;
-  optOutBreached: number;
 }
