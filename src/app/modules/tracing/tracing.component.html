@@ -2,13 +2,14 @@
   <div class="ml-auto">
     <!-- Filter placeholder -->
   </div>
-  <nz-table nzBordered #tracingTable [nzData]="tableData">
+  <nz-table nzBordered #tracingTable [nzData]="tableData" [nzPageSize]="dataForModal && modalDisplayTableLimit || 10">
     <thead>
       <tr>
         @for (col of colDefs; track col) {
           @if (col.name === 'requestCreatedDate') {
           <th [nzSortFn]="col.sortFn" [nzSortOrder]="col.sortOrder" [nzSortFn]="col.sortFn"
             [nzSortDirections]="col.sortDirections" [nzFilterMultiple]="col.filterMultiple" [nzFilters]="col.listOfFilter"
+            [nzShowSort] = "dataForModal.length === 0"
             [nzShowFilter]="col.showFilter"
             [nzFilterFn]="col.filterFn" scope="col" nzAlign="center">
             {{col.name}}</th>

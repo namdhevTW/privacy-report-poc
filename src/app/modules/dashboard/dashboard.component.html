@@ -2,6 +2,8 @@
   <div class="col-span-1 mr-auto">
     <nz-segmented [nzOptions]="['Overall metrics', 'Processed metrics']" [(ngModel)]="selectedTab" (ngModelChange)="changeSelectedTab($event)" nzSize="large"></nz-segmented>
   </div>
+
+  <!--#region: filters-->
   <div class="col-span-5 ml-auto">
     <!-- Consent mode -->
     <span class="flex items-center">
@@ -40,10 +42,13 @@
     </a>
   </span>
   </div>
+  <!--#endregion-->
+
 </div>
 
 @switch (selectedTab) {
   @case(0) {
+    <!--#region: Overall metrics for admin-->
     <div class="dashboard-content-wrapper  bg-gray-100">
       @if(privacyData && privacyData.length > 0) {
       <div class="grid grid-cols-6 gap-2 mb-2">
@@ -60,7 +65,7 @@
                         <div class="text-3xl font-bold ">{{requestStats.all}}</div>
                         <div class="text-lg">All</div>
                       </div>
-                      <div class="flex flex-col items-center bg-red-500 text-white border rounded p-2 py-5">
+                      <div class="flex flex-col items-center bg-red-400 text-white border rounded p-2 py-5">
                         <div class="text-3xl font-bold">{{requestStats.pending}}</div>
                         <div class="text-lg">Pending</div>
                       </div>
@@ -77,7 +82,7 @@
                 </div>
                 <div class="col-span-2 p-4">
                   @if(requestStats.pending > 0) {
-                    <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full py-2"></div>
+                    <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full py-2" (chartClick)="onChartClickEvent($event, tableModal)"></div>
                   } @else {
                     <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
                       <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
@@ -90,7 +95,7 @@
                       <nz-empty nzNotFoundContent="SLA data is not available for the selected filter"></nz-empty>
                     </div>
                   } @else {
-                  <div echarts [options]="slaChartOption" class="h-full py-2"></div>
+                  <div echarts [options]="slaChartOption" class="h-full py-2" (chartClick)="onChartClickEvent($event, tableModal)"></div>
                   }
                 </div>
               </div>
@@ -116,7 +121,7 @@
           <div class="card rounded border-2 border-gray-500 p-3">
           @if(requestStats.pending > 0) {
             <div class="card-body">
-              <div echarts [options]="nonProcessedRequestsByCurrentStageChartOption" (chartClick)="onBarChartClickEvent($event)" class="h-full"></div>
+              <div echarts [options]="nonProcessedRequestsByCurrentStageChartOption" (chartClick)="onChartClickEvent($event, tableModal)" class="h-full"></div>
             </div>
           } @else {
             <div class="dnf-wrapper">
@@ -147,8 +152,13 @@
       </div>
       }
     </div>
+    <!--#endregion-->
   }
   @case (1) {
     <span class="text-3xl font-bold">Processed metrics</span>
   }
 }
+
+<ng-template #tableModal let-ref="modelRef">
+  <app-tracing [dataForModal]="modalData"></app-tracing>
+</ng-template>

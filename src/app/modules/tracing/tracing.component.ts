@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { IPrivacyData } from '@app/core/models/interfaces/privacy-data';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { DataService } from '@app/core/services/data/data.service';
@@ -10,6 +10,8 @@ import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } f
   styleUrls: ['./tracing.component.css']
 })
 export class TracingComponent {
+  @Input() dataForModal: IPrivacyData[] = [];
+  @Input() modalDisplayTableLimit: number = 5;
   tableData: IPrivacyData[] = [];
   colDefs: {
     name: string;
@@ -32,34 +34,39 @@ export class TracingComponent {
   }
 
 
-  ngOnInit(): void {
-    this.dataService.getPrivacyData().subscribe(data => {
-      this.tableData = data;
-      this.role = this.authService.role;
+  ngOnChanges(): void {
+    if (this.dataForModal.length > 0) {
+      this.tableData = this.dataForModal;
       this.setColumnDefs();
+    } else {
+      this.dataService.getPrivacyData().subscribe(data => {
+        this.tableData = data;
+        this.role = this.authService.role;
+        this.setColumnDefs();
 
-      this.authService.roleChangeSubject.subscribe(role => {
-        this.role = role;
-        if (this.role === 'service-owner') {
-          this.serviceOwner = this.authService.serviceOwner;
+        this.authService.roleChangeSubject.subscribe(role => {
+          this.role = role;
+          if (this.role === 'service-owner') {
+            this.serviceOwner = this.authService.serviceOwner;
+            this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
+          } else {
+            this.serviceOwner = '';
+            this.tableData = data;
+          }
+          this.setColumnDefs();
+        });
+        this.authService.serviceOwnerChangeSubject.subscribe(serviceOwner => {
+          this.serviceOwner = serviceOwner;
           this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
-        } else {
-          this.serviceOwner = '';
-          this.tableData = data;
-        }
-        this.setColumnDefs();
+          this.setColumnDefs();
+        });
       });
-      this.authService.serviceOwnerChangeSubject.subscribe(serviceOwner => {
-        this.serviceOwner = serviceOwner;
-        this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
-        this.setColumnDefs();
-      });
-    });
+    }
 
   }
 
   displayFullState(state: string): string {
-    return this.stateOptions.find(s => s.value === state)?.label || '';
+    return this.stateOptions.find(s => s.value === state)?.label ?? '';
   }
 
   private setColumnDefs(): void {
@@ -145,6 +152,13 @@ export class TracingComponent {
         sortDirections: ['ascend', 'descend ', null]
       }
     ];
+
+    if (this.dataForModal.length > 0) {
+      this.colDefs.forEach(colDef => {
+        colDef.showFilter = false;
+        colDef.sortOrder = null;
+      });
+    }
   }
 
   private isAdmin(): boolean {

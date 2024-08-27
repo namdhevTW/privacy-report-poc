@@ -13,6 +13,8 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { TracingModule } from "@modules/tracing/tracing.module";
 
 @NgModule({
   declarations: [
@@ -26,6 +28,7 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
     SharedModule,
     NzSegmentedModule,
     NzEmptyModule,
+    NzModalModule,
     NzIconModule.forChild([CloseOutline]),
     NzSelectModule,
     NzSwitchModule,
@@ -33,6 +36,6 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
     NzDatePickerModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts'),
-    }),], providers: [provideHttpClient(withInterceptorsFromDi())]
+    }), TracingModule], providers: [provideHttpClient(withInterceptorsFromDi())]
 })
 export class DashboardModule { }

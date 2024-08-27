@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { IPrivacyData } from '@core/models/interfaces/privacy-data';
 import { DataService } from '../data/data.service';
 import { Observable, tap } from 'rxjs';
-import { ECharts, EChartsOption } from 'echarts';
+import { EChartsOption } from 'echarts';
 import { IPrivacyRequestStats } from '@app/core/models/interfaces/privacy-request-stats';
 
 @Injectable({
@@ -11,7 +11,7 @@ import { IPrivacyRequestStats } from '@app/core/models/interfaces/privacy-reques
 
 export class DashboardService {
   saleShareOptOutRequestTypeText = 'Right to opt out of sale or sharing';
-  nonDiscrimationRequestTypeText = 'Right to non-discrimination';
+  rightToLimitUseTypeText = 'Right to limit use';
 
   originalData: IPrivacyData[] = [];
 
@@ -76,7 +76,7 @@ export class DashboardService {
     }
 
     if (consentModeOn) {
-      filteredData = filteredData.filter(d => d.requestType.includes('opt') || d.requestType.includes('non-discrimination'));
+      filteredData = filteredData.filter(d => this.isOptOutRequest(d));
     }
 
     return filteredData;
@@ -131,7 +131,7 @@ export class DashboardService {
     uniqueRequestTypes.forEach(requestType => {
       uniqueServiceOwners.forEach(serviceOwner => {
         const key = `${requestType}-${serviceOwner}`;
-        const serviceOwnerLabel = this.fetchServiceOwners().find(s => s.value === serviceOwner)?.label || serviceOwner;
+        const serviceOwnerLabel = this.fetchServiceOwners().find(s => s.value === serviceOwner)?.label ?? serviceOwner;
         const count = serviceOwners[key] || 0;
         result.push([requestType, serviceOwnerLabel, count]);
       });
@@ -174,11 +174,11 @@ export class DashboardService {
       },
       series: [
         {
-          name: 'Non-processed Requests',
+          name: SeriesNames.NonProcessedByServiceOwner,
           type: 'bar',
           showBackground: true,
           itemStyle: {
-            color: '#ef4444',
+            color: '#f87171',
             borderRadius: [8, 8, 0, 0],
             borderWidth: 2,
           },
@@ -228,7 +228,7 @@ export class DashboardService {
       },
       series: [
         {
-          name: 'SLA Compliance',
+          name: SeriesNames.NonProcessedSLACompliance,
           type: 'pie',
           height: '140%',
           itemStyle: {
@@ -250,11 +250,11 @@ export class DashboardService {
             fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
             fontSize: 13,
           },
-          color: ['#10b981', '#facc15', '#ef4444'],
+          color: ['#10b981', '#facc15', '#f87171'],
           data: [
-            { value: stats.inSLA, name: 'Compliant' },
-            { value: stats.nearingSLAInAWeek, name: 'Nearing breach' },
-            { value: stats.breached, name: 'Breached' },
+            { value: stats.inSLA, name: SLAComplianceTypes.InSLA },
+            { value: stats.nearingSLAInAWeek, name: SLAComplianceTypes.NearingSLA },
+            { value: stats.breached, name: SLAComplianceTypes.BreachedSLA },
           ],
         },
       ],
@@ -297,14 +297,14 @@ export class DashboardService {
       },
       series: [
         {
-          name: 'Request type',
+          name: SeriesNames.NonProcessedRequestTypeDistribution,
           type: 'pie',
           padAngle: 5,
           itemStyle: {
             borderRadius: 15,
             borderWidth: 0.5
           },
-          color: ['#10b981', '#facc15', '#ef4444', '#3b82f6', '#64748b'],
+          color: ['#10b981', '#facc15', '#f87171', '#3b82f6', '#64748b'],
           radius: ['35%', '45%'],
           // color: ['#047857', '#facc15', '#dc2626'],
           label: {
@@ -346,7 +346,6 @@ export class DashboardService {
         height: '60%',
         top: 'center',
         containLabel: true,
-
       },
       xAxis: {
         type: 'category',
@@ -362,7 +361,8 @@ export class DashboardService {
         splitArea: {
           show: true,
         },
-        axisLabel: this.getFontBasedStyle(12)
+
+        axisLabel: this.getFontBasedStyle(12, 'right')
       },
       visualMap: {
         min: 0,
@@ -370,29 +370,32 @@ export class DashboardService {
         showLabel: true,
         borderMiterLimit: 1,
         calculable: true,
-        orient: 'horizontal',
-        left: 'center',
-        bottom: '5%',
+        orient: 'vertical',
+        right: '5%',
+        bottom: 'center',
         textStyle: this.getFontBasedStyle(12),
+
         inRange: {
-          color: ['#10b981', '#facc15', '#ef4444'],
+          color: ['#10b981', '#facc15', '#f87171'],
         },
       },
       series: [
         {
-          name: 'Non-processed Requests',
+          name: SeriesNames.NonProcessedByServiceOwnerAndRequestType,
           type: 'heatmap',
           data: this.getUniqueServiceOwnersWithRequestTypesAndNonProcessedRequestCount(data).map(d => [d[0], d[1], d[2]]),
-          label: {
-            show: true,
-            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: 12,
-          },
           emphasis: {
             itemStyle: {
               shadowBlur: 10,
               shadowColor: 'rgba(0, 0, 0, 0.5)',
             },
+          },
+          label: {
+            show: true,
+            position: 'inside',
+            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: 14,
+            fontWeight: 'bold',
           },
         },
       ],
@@ -455,7 +458,7 @@ export class DashboardService {
       series:
         [
           {
-            name: 'Non-processed Requests',
+            name: SeriesNames.NonProcessedByCurrentStage,
             type: 'bar',
             label: {
               show: true,
@@ -465,7 +468,7 @@ export class DashboardService {
               fontWeight: 'bold',
             },
             itemStyle: {
-              color: '#ef4444',
+              color: '#f87171',
               borderRadius: [8, 8, 0, 0],
               borderWidth: 2,
             },
@@ -482,6 +485,10 @@ export class DashboardService {
     };
   }
 
+  isRequestPending(data: IPrivacyData): boolean {
+    return !(this.isRequestCompleted(data) || this.isRequestRejected(data));
+  }
+
   private isRequestCompleted(data: IPrivacyData): boolean {
     return data.currentStage === 'Completed';
   }
@@ -490,19 +497,35 @@ export class DashboardService {
     return data.currentStage === 'Rejected';
   }
 
-  private isRequestPending(data: IPrivacyData): boolean {
-    return !(this.isRequestCompleted(data) || this.isRequestRejected(data));
-  }
-
-  private getFontBasedStyle(fntSize = 12): any {
+  private getFontBasedStyle(fntSize = 12, align = 'center'): any {
     return {
       fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
       fontSize: fntSize,
-      align: 'center',
+      align: align,
     };
   }
 
   private isOptOutRequest(data: IPrivacyData): boolean {
-    return data.requestType === this.saleShareOptOutRequestTypeText || data.requestType === this.nonDiscrimationRequestTypeText;
+    return data.requestType === this.saleShareOptOutRequestTypeText || data.requestType === this.rightToLimitUseTypeText;
   }
+}
+
+export enum EChartType {
+  Bar = 'bar',
+  Pie = 'pie',
+  Heatmap = 'heatmap',
+}
+
+export enum SeriesNames {
+  NonProcessedByServiceOwner = 'Non-processed requests distribution by Service Owner',
+  NonProcessedSLACompliance = 'Non-processed SLA Compliance',
+  NonProcessedRequestTypeDistribution = 'Non-processed request type distribution',
+  NonProcessedByCurrentStage = 'Non-processed requests by current stage',
+  NonProcessedByServiceOwnerAndRequestType = 'Non-processed requests by service owner and request type',
+}
+
+export enum SLAComplianceTypes {
+  InSLA = 'Compliant',
+  NearingSLA = 'Nearing SLA',
+  BreachedSLA = 'Exceeded SLA',
 }

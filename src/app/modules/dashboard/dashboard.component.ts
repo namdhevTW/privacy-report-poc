@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
-import { EChartsOption } from 'echarts';
+import { Component, TemplateRef } from '@angular/core';
+import { ECElementEvent, EChartsOption } from 'echarts';
 import { IPrivacyData } from '@core/models/interfaces/privacy-data';
-import { DashboardService } from '@core/services/dashboard/dashboard.service';
+import { DashboardService, SeriesNames, SLAComplianceTypes } from '@core/services/dashboard/dashboard.service';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { NzDatePickerComponent } from 'ng-zorro-antd/date-picker';
+import { NzModalService } from 'ng-zorro-antd/modal';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,6 +32,7 @@ export class DashboardComponent {
   selectedService: string = 'all';
   selectedRequestType: string = 'All';
   privacyData: IPrivacyData[] = [];
+  modalData: IPrivacyData[] = [];
   consentModeOn: boolean = false;
 
   selectedStartDate!: Date;
@@ -52,7 +54,11 @@ export class DashboardComponent {
 
   _requestCreatedDateRangeControl: any;
 
-  constructor(private dashboardService: DashboardService, private authService: AuthService) {
+  constructor(
+    private dashboardService: DashboardService,
+    private authService: AuthService,
+    private modalService: NzModalService
+  ) {
     this.states = this.dashboardService.fetchStateOptions();
     this.states.unshift({ value: 'all', label: 'All' });
 
@@ -92,6 +98,10 @@ export class DashboardComponent {
       this.selectedService = serviceOwner;
       this.applyFilter();
     });
+  }
+
+  ngOnDestroy() {
+    this.modalData = [];
   }
 
   changeSelectedTab(tab: number) {
@@ -139,8 +149,35 @@ export class DashboardComponent {
     this._requestCreatedDateRangeControl = control;
   }
 
-  onBarChartClickEvent(event: any): void {
-    console.log(event);
+  onChartClickEvent(event: ECElementEvent, templateRef: TemplateRef<{}>): void {
+    if (this.role === 'admin') {
+      console.log('Chart Click Event', event);
+
+      this.modalData = this.privacyData;
+      switch (event.seriesName) {
+        case SeriesNames.NonProcessedSLACompliance:
+          this.setModalDataBasedOnSLA(event);
+          this.openModal(`Data for - ${SeriesNames.NonProcessedSLACompliance}`, templateRef);
+          break;
+        case SeriesNames.NonProcessedByCurrentStage:
+          this.modalData = this.privacyData.filter(d => d.currentStage === event.name.replace(/\n/g, ' '));
+          this.openModal(`Data for - ${SeriesNames.NonProcessedByCurrentStage}`, templateRef);
+          break;
+        case SeriesNames.NonProcessedByServiceOwnerAndRequestType:
+          // TODO - create and open modal with appropriate non processed requests based modal data
+          break;
+        case SeriesNames.NonProcessedByServiceOwner:
+          this.setModalDataByServiceOwner(event);
+          this.openModal(`Data for - ${SeriesNames.NonProcessedByServiceOwner}`, templateRef);
+          break;
+        case SeriesNames.NonProcessedRequestTypeDistribution:
+          // TODO - create and open modal with appropriate non processed requests based modal data
+          break;
+        default:
+          this.openModal('Current dashboard data', templateRef);
+          break;
+      }
+    }
   }
 
   applyFilter() {
@@ -156,7 +193,7 @@ export class DashboardComponent {
     if (this.role === 'admin') {
       this.selectedService = 'all';
     }
-    if (this._requestCreatedDateRangeControl && this._requestCreatedDateRangeControl.rangePickerInputs && this._requestCreatedDateRangeControl.rangePickerInputs.first) {
+    if (this._requestCreatedDateRangeControl?.rangePickerInputs?.first) {
       this.clearRequestCreatedDateInputs();
     }
     this.setDefaultRequestCreatedDateRange();
@@ -185,6 +222,35 @@ export class DashboardComponent {
 
   private updateRequestStats(data: IPrivacyData[]) {
     this.requestStats = this.dashboardService.calculateTotals(data);
+  }
+
+  private openModal(title: string, templateRef: TemplateRef<{}>): void {
+    this.modalService.create({
+      nzTitle: title,
+      nzContent: templateRef,
+      nzFooter: null,
+      nzWidth: '80vw',
+    });
+  }
+
+  private setModalDataByServiceOwner(event: ECElementEvent) {
+    let serviceOwners = this.dashboardService.fetchServiceOwners();
+    serviceOwners = serviceOwners.filter(s => s.label === event.name);
+    this.modalData = this.privacyData.filter(d => d.serviceOwner === serviceOwners[0].value);
+  }
+
+  private setModalDataBasedOnSLA(event: ECElementEvent) {
+    switch ((event.data as any)?.name) {
+      case SLAComplianceTypes.BreachedSLA:
+        this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) <= 0);
+        break;
+      case SLAComplianceTypes.NearingSLA:
+        this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7);
+        break;
+      case SLAComplianceTypes.InSLA:
+        this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) >= 7);
+        break;
+    }
   }
 }
 
