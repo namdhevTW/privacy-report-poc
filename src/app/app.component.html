@@ -1,37 +1,40 @@
-<!--Role menu-->
-<div class="absolute left-1/3">
-  <div class="p-4 bg-slate-700 text-white border rounded">
-    <span class="mr-2">Role: </span>
-    <nz-select [(ngModel)]="role" (ngModelChange)="changeRole($event)">
-      <nz-option nzValue="admin" nzLabel="Administrator"></nz-option>
-      <nz-option nzValue="service-owner" nzLabel="Service owner"></nz-option>
-    </nz-select>
-    @if(role !== 'admin') {
+<div class="p-4 bg-gray-50 w-full h-full" #contentDiv>
+  <div class="header flex justify-between w-full h-full relative">
+    <nz-tabset [nzSelectedIndex]="isDashboardComponentCurrentlyLoaded()? 0: 1" nzType="card" class="w-full">
+      <nz-tab [nzTitle]="dashboardTab">
+        <ng-template #dashboardTab>
+          <a routerLink="/">
+            <span nz-icon nzType="pie-chart" nzTheme="outline"></span>
+            Dashboard
+          </a>
+        </ng-template>
+        <app-dashboard></app-dashboard>
+      </nz-tab>
+      <nz-tab [nzTitle]="tracingTab">
+        <ng-template #tracingTab>
+          <a routerLink="/tracing">
+            <span nz-icon nzType="table" nzTheme="outline"></span>
+            Tracing
+          </a>
+        </ng-template>
+        <app-tracing></app-tracing>
+      </nz-tab>
+    </nz-tabset>
+    <div class="p-2 bg-gray-500 text-white border rounded absolute left-[75%] -top-5">
+      <span class="mr-2">Role: </span>
+      <nz-select [(ngModel)]="role" (ngModelChange)="changeRole($event)">
+        <nz-option nzValue="admin" nzLabel="Administrator"></nz-option>
+        <nz-option nzValue="service-owner" nzLabel="Service owner"></nz-option>
+      </nz-select>
+      @if(role !== 'admin') {
       <span class="mx-2">Service owner: </span>
       <nz-select [(ngModel)]="selectedServiceOwner" (ngModelChange)="changeServiceOwner($event)">
         @for (service of serviceOwners; track service.value) {
-          <nz-option nzLabel="{{service.label}}" nzValue="{{service.value}}"></nz-option>
+        <nz-option nzLabel="{{service.label}}" nzValue="{{service.value}}"></nz-option>
         }
       </nz-select>
-    }
+      }
+    </div>
   </div>
-</div>
-
-<!--side menu-->
-<div class="fixed top-1/2 h-full">
-  <ul nz-menu nzMode="inline" nzTheme="light" class="border-2 border-l-0 border-sky-500 bg-blend-lighten rounded">
-    <li nz-menu-item nz-tooltip nzTooltipTitle="Dashboard" [nzSelected]="isDashboardComponentCurrentlyLoaded()" routerLink="/" style="margin-top: 0;">
-      <span nz-icon nzType="pie-chart" nzTheme="outline"></span>
-    </li>
-    <li nz-menu-item nz-tooltip nzTooltipTitle="Tracing" [nzSelected]="isTracingComponentCurrentlyLoaded()" routerLink="/tracing" style="margin-bottom: 0;">
-      <span nz-icon nzType="table" nzTheme="outline" c></span>
-    </li>
-  </ul>
-</div>
-
-
-<nz-back-top></nz-back-top>
-
-<div class="p-16 w-full" #contentDiv>
-  <router-outlet></router-outlet>
-<div>
+  <nz-back-top></nz-back-top>
+  <div>

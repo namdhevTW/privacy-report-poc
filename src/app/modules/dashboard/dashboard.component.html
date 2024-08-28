@@ -1,6 +1,6 @@
-<div class="grid grid-cols-6 gap-8 items-center p-3 border rounded bg-gray-100 mt-3">
+<div class="grid grid-cols-6 gap-8 items-center p-4 bg-gray-50 mt-3">
   <div class="col-span-1 mr-auto">
-    <nz-segmented [nzOptions]="['Overall metrics', 'Processed metrics']" [(ngModel)]="selectedTab" (ngModelChange)="changeSelectedTab($event)" nzSize="large"></nz-segmented>
+    <nz-segmented [nzOptions]="['Non-processed', 'Processed']" [(ngModel)]="selectedTab" (ngModelChange)="changeSelectedTab($event)" nzSize="large"></nz-segmented>
   </div>
 
   <!--#region: filters-->
@@ -49,15 +49,15 @@
 @switch (selectedTab) {
   @case(0) {
     <!--#region: Overall metrics for admin-->
-    <div class="dashboard-content-wrapper  bg-gray-100">
+    <div class="dashboard-content-wrapper  bg-gray-50">
       @if(privacyData && privacyData.length > 0) {
       <div class="grid grid-cols-6 gap-2 mb-2">
-        <div class="col-span-6 p-3">
+        <div class="col-span-6 p-4">
           <div class="card">
             <div class="card-body">
               <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500">
-                <div class="col-span-2 py-4">
-                  <div class="flex flex-col items-center justify-center h-full p-2">
+                <div class="col-span-2 py-2">
+                  <div class="flex flex-col items-center justify-center h-full">
                     <div class="text-xl font-bold">Request stats</div>
                     <div class="text-[1rem] text-slate-500">Overall stats for the applied filter</div>
                     <div class="grid grid-cols-4 py-10 gap-4 mt-4">
@@ -80,22 +80,22 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-span-2 p-4">
+                <div class="col-span-2 py-2">
                   @if(requestStats.pending > 0) {
-                    <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full py-2" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+                    <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
                   } @else {
                     <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
                       <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
                     </div>
                   }
                 </div>
-                <div class="col-span-2 rounded border-r-2 border-gray-500 p-4">
+                <div class="col-span-2 rounded border-r-2 py-2 border-gray-500">
                   @if(isSLADataUnavailable()) {
                     <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
                       <nz-empty nzNotFoundContent="SLA data is not available for the selected filter"></nz-empty>
                     </div>
                   } @else {
-                  <div echarts [options]="slaChartOption" class="h-full py-2" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+                  <div echarts [options]="slaChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
                   }
                 </div>
               </div>
@@ -160,5 +160,5 @@
 }
 
 <ng-template #tableModal let-ref="modelRef">
-  <app-tracing [dataForModal]="modalData" [displayCols]="modalCols"></app-tracing>
+  <app-tracing [dataForModal]="modalData" [displayCols]="modalCols" [pageSizeLimit]="5"></app-tracing>
 </ng-template>

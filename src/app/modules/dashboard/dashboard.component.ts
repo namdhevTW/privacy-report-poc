@@ -179,12 +179,15 @@ export class DashboardComponent {
       case SeriesNames.NonProcessedSLACompliance:
         this.setModalDataBasedOnSLA(event);
         this.modalCols = ['requestId', 'requestType', 'currentStage', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for - ${SeriesNames.NonProcessedSLACompliance}`, templateRef);
+        this.openModal(`Data for ${SeriesNames.NonProcessedSLACompliance}`, templateRef);
         break;
       case SeriesNames.NonProcessedByCurrentStage:
         this.modalData = this.privacyData.filter(d => d.currentStage === event.name.replace(/\n/g, ' '));
         this.modalCols = ['requestId', 'currentStage', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for - ${SeriesNames.NonProcessedByCurrentStage}`, templateRef);
+        if (this.role == 'admin') {
+          this.modalCols = [...this.modalCols, 'serviceOwner'];
+        }
+        this.openModal(`Data for ${SeriesNames.NonProcessedByCurrentStage}`, templateRef);
         break;
       case SeriesNames.NonProcessedByServiceOwnerAndRequestType:
         let eventData = event.data as string[];
@@ -193,18 +196,18 @@ export class DashboardComponent {
           break;
         }
         this.modalData = this.privacyData.filter(d => d.serviceOwner === eventData[1] && d.requestType === eventData[0] && this.dashboardService.isRequestPending(d));
-        this.modalCols = ['requestId', 'requestType', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for - ${SeriesNames.NonProcessedByServiceOwnerAndRequestType}`, templateRef);
+        this.modalCols = ['requestId', 'currentStage', 'requestType', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
+        this.openModal(`Data for ${SeriesNames.NonProcessedByServiceOwnerAndRequestType}`, templateRef);
         break;
       case SeriesNames.NonProcessedByServiceOwner:
         this.setModalDataByServiceOwner(event);
-        this.modalCols = ['requestId', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for - ${SeriesNames.NonProcessedByServiceOwner}`, templateRef);
+        this.modalCols = ['requestId', 'currentStage', 'requestCreatedDate', 'slaDays'];
+        this.openModal(`Data for ${SeriesNames.NonProcessedByServiceOwner}`, templateRef);
         break;
       case SeriesNames.NonProcessedRequestTypeDistribution:
         this.modalData = this.privacyData.filter(d => d.requestType === event.name && this.dashboardService.isRequestPending(d));
         this.modalCols = ['requestId', 'requestType', 'currentStage', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for - ${SeriesNames.NonProcessedRequestTypeDistribution}`, templateRef);
+        this.openModal(`Data for ${SeriesNames.NonProcessedRequestTypeDistribution}`, templateRef);
         break;
       default:
         this.openModal('Current dashboard data', templateRef);

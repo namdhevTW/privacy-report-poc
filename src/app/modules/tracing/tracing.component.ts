@@ -3,7 +3,7 @@ import { IPrivacyData } from '@app/core/models/interfaces/privacy-data';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { DataService } from '@app/core/services/data/data.service';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
-import { exportCSVFromJSON } from 'export-json-to-csv'
+import { exportCSVFromJSON } from 'export-json-to-csv';
 
 @Component({
   selector: 'app-tracing',
@@ -13,8 +13,7 @@ import { exportCSVFromJSON } from 'export-json-to-csv'
 export class TracingComponent {
   @Input() dataForModal: IPrivacyData[] = [];
   @Input() displayCols: string[] = ['requestId', 'requestType', 'serviceOwner', 'currentStage', 'state', 'slaDays', 'requestCreatedDate', 'requestCompletedDate'];
-
-  pageSizeLimit: number = 5;
+  @Input() pageSizeLimit: number = 10;
   tableData: IPrivacyData[] = [];
   colDefs: {
     name: string;
@@ -35,12 +34,21 @@ export class TracingComponent {
   private role: string = 'admin';
   private serviceOwner: string = '';
 
-  constructor(private dataService: DataService, private authService: AuthService) {
+  constructor(
+    private dataService: DataService,
+    private authService: AuthService,
+  ) {
     this.stateOptions = this.dataService.getStates();
   }
 
   ngOnInit(): void {
     this.loadTableData();
+  }
+
+  ngOnDestroy(): void {
+    this.authService.roleChangeSubject.unsubscribe();
+    this.authService.serviceOwnerChangeSubject.unsubscribe();
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
 
   ngOnChanges(): void {
@@ -51,40 +59,43 @@ export class TracingComponent {
     return this.stateOptions.find(s => s.value === state)?.label ?? '';
   }
 
+  loadPrivacyTableData() {
+    this.dataService.getPrivacyData().subscribe(data => {
+      this.tableData = data;
+
+      this.role = this.authService.role;
+      if (this.role === 'service-owner') {
+        this.serviceOwner = this.authService.serviceOwner;
+        this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
+      }
+
+      this.setColumnDefs();
+
+      this.authService.roleChangeSubject.subscribe(role => {
+        this.role = role;
+        if (this.role === 'service-owner') {
+          this.serviceOwner = this.authService.serviceOwner;
+          this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
+        } else {
+          this.serviceOwner = '';
+          this.tableData = data;
+        }
+        this.setColumnDefs();
+      });
+      this.authService.serviceOwnerChangeSubject.subscribe(serviceOwner => {
+        this.serviceOwner = serviceOwner;
+        this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
+        this.setColumnDefs();
+      });
+    });
+  }
+
   private loadTableData() {
     if (this.dataForModal.length > 0) {
       this.tableData = this.dataForModal;
       this.setColumnDefs();
     } else {
-      this.dataService.getPrivacyData().subscribe(data => {
-        this.tableData = data;
-
-        this.role = this.authService.role;
-        if (this.role === 'service-owner') {
-          this.serviceOwner = this.authService.serviceOwner;
-          this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
-        }
-
-        this.setColumnDefs();
-        this.pageSizeLimit = 10;
-
-        this.authService.roleChangeSubject.subscribe(role => {
-          this.role = role;
-          if (this.role === 'service-owner') {
-            this.serviceOwner = this.authService.serviceOwner;
-            this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
-          } else {
-            this.serviceOwner = '';
-            this.tableData = data;
-          }
-          this.setColumnDefs();
-        });
-        this.authService.serviceOwnerChangeSubject.subscribe(serviceOwner => {
-          this.serviceOwner = serviceOwner;
-          this.tableData = data.filter(d => d.serviceOwner === this.serviceOwner);
-          this.setColumnDefs();
-        });
-      });
+      this.loadPrivacyTableData();
     }
   }
 
