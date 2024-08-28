@@ -212,7 +212,7 @@ export class DashboardComponent {
     this.requestTypeChartOption = this.dashboardService.fetchRequestTypePieChartOptions(this.privacyData);
     this.serviceOwnerChartOption = this.dashboardService.fetchServiceOwnerRequestTypeHeatMapChartOptions(this.privacyData);
     this.nonProcessedRequestsByCurrentStageChartOption = this.dashboardService.fetchNonProcessedRequestsByCurrentStageBarChartOption(this.privacyData);
-    this.pendingRequestsByServiceOwnerChartOption = this.dashboardService.fetchPendingRequestsDistributionByServiceOwner(this.privacyData);
+    this.pendingRequestsByServiceOwnerChartOption = this.dashboardService.fetchPendingRequestsDistributionByServiceOwner(this.privacyData, this.selectedService);
   }
 
   private setDefaultRequestCreatedDateRange(): void {

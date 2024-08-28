@@ -7,18 +7,35 @@
       <tr>
         @for (col of colDefs; track col) {
           @if (col.name === 'requestCreatedDate') {
-          <th [nzSortFn]="col.sortFn" [nzSortOrder]="col.sortOrder" [nzSortFn]="col.sortFn"
-            [nzSortDirections]="col.sortDirections" [nzFilterMultiple]="col.filterMultiple" [nzFilters]="col.listOfFilter"
-            [nzShowSort] = "dataForModal.length === 0"
+          <th
+            *ngIf="col.showCol"
+            [nzSortFn]="col.sortFn"
+            [nzSortOrder]="col.sortOrder"
+            [nzSortFn]="col.sortFn"
+            [nzSortDirections]="col.sortDirections"
+            [nzFilterMultiple]="col.filterMultiple"
             [nzShowFilter]="col.showFilter"
-            [nzFilterFn]="col.filterFn" scope="col" nzAlign="center">
+            [nzFilters]="col.listOfFilter"
+            [nzFilterFn]="col.filterFn"
+            [nzShowSort]="col.showSort"
+            scope="col"
+            nzAlign="center">
             {{col.name}}</th>
           }
           @else {
-          <th [nzSortFn]="col.sortFn" [nzSortOrder]="col.sortOrder" [nzSortFn]="col.sortFn"
-            [nzSortDirections]="col.sortDirections" [nzFilterMultiple]="col.filterMultiple" [nzFilters]="col.listOfFilter"
+          <th
+            *ngIf="col.showCol"
+            [nzSortFn]="col.sortFn"
+            [nzSortOrder]="col.sortOrder"
+            [nzSortFn]="col.sortFn"
+            [nzSortDirections]="col.sortDirections"
+            [nzFilterMultiple]="col.filterMultiple"
+            [nzFilters]="col.listOfFilter"
             [nzShowFilter]="col.showFilter"
-            [nzFilterFn]="col.filterFn" scope="col" nzAlign="center">
+            [nzShowSort]="col.showSort"
+            [nzFilterFn]="col.filterFn"
+            scope="col"
+            nzAlign="center">
             {{col.name}}</th>
           }
         }
@@ -26,14 +43,14 @@
     </thead>
     <tbody>
       <tr *ngFor="let privData of tracingTable.data">
-        <td>{{ privData.requestId }}</td>
-        <td>{{ privData.requestType }}</td>
-        <td>{{ privData.currentStage }}</td>
-        <td>{{privData.serviceOwner}}</td>
-        <td>{{displayFullState(privData.state)}}</td>
-        <td>{{privData.slaDays}}</td>
-        <td>{{ privData.requestCreatedDate | date: 'dd-MMM-yyyy' }}</td>
-        <td>{{privData.requestCompletedDate | date: 'dd-MMM-yyyy' }}</td>
+        <td *ngIf="isColumnVisible('requestId')">{{ privData.requestId }}</td>
+        <td *ngIf="isColumnVisible('requestType')">{{ privData.requestType }}</td>
+        <td *ngIf="isColumnVisible('currentStage')">{{ privData.currentStage }}</td>
+        <td *ngIf="isColumnVisible('serviceOwner')"> {{privData.serviceOwner}}</td>
+        <td *ngIf="isColumnVisible('state')">{{displayFullState(privData.state)}}</td>
+        <td *ngIf="isColumnVisible('slaDays')">{{privData.slaDays}}</td>
+        <td *ngIf="isColumnVisible('requestCreatedDate')">{{ privData.requestCreatedDate | date: 'dd-MMM-yyyy' }}</td>
+        <td *ngIf="isColumnVisible('requestCompletedDate')">{{privData.requestCompletedDate | date: 'dd-MMM-yyyy' }}</td>
       </tr>
     </tbody>
   </nz-table>

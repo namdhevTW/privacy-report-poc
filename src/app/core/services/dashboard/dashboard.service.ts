@@ -140,8 +140,11 @@ export class DashboardService {
     return result;
   }
 
-  fetchPendingRequestsDistributionByServiceOwner(data: IPrivacyData[]): EChartsOption {
-    const serviceOwners = this.fetchServiceOwners().slice(0, 5);
+  fetchPendingRequestsDistributionByServiceOwner(data: IPrivacyData[], selectedService: string): EChartsOption {
+    let serviceOwners = this.fetchServiceOwners().slice(0, 5);
+    if (selectedService && selectedService !== 'all') {
+      serviceOwners = this.fetchServiceOwners().filter(s => s.value === selectedService);
+    }
 
     return {
       title: {
