@@ -3,6 +3,7 @@ import { IPrivacyData } from '@app/core/models/interfaces/privacy-data';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { DataService } from '@app/core/services/data/data.service';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
+import { exportCSVFromJSON } from 'export-json-to-csv'
 
 @Component({
   selector: 'app-tracing',
@@ -11,7 +12,7 @@ import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } f
 })
 export class TracingComponent {
   @Input() dataForModal: IPrivacyData[] = [];
-  @Input() displayCols: string[] = [];
+  @Input() displayCols: string[] = ['requestId', 'requestType', 'serviceOwner', 'currentStage', 'state', 'slaDays', 'requestCreatedDate', 'requestCompletedDate'];
 
   pageSizeLimit: number = 5;
   tableData: IPrivacyData[] = [];
@@ -99,7 +100,7 @@ export class TracingComponent {
         filterMultiple: false,
         showFilter: false,
         showSort: true,
-        showCol: true,
+        showCol: this.displayCols.includes('requestId'),
         sortDirections: ['ascend', 'descend', null],
       },
       {
@@ -112,7 +113,7 @@ export class TracingComponent {
         filterMultiple: false,
         showFilter: false,
         showSort: true,
-        showCol: true,
+        showCol: this.displayCols.includes('requestType'),
         sortDirections: ['ascend', 'descend', null],
       },
       {
@@ -125,7 +126,7 @@ export class TracingComponent {
         filterMultiple: false,
         showFilter: false,
         showSort: true,
-        showCol: true,
+        showCol: this.displayCols.includes('currentStage'),
         sortDirections: ['ascend', 'descend', null]
       },
       {
@@ -138,7 +139,7 @@ export class TracingComponent {
         filterMultiple: true,
         showFilter: this.isAdmin(),
         showSort: true,
-        showCol: this.isAdmin(),
+        showCol: this.isAdmin() && this.displayCols.includes('serviceOwner'),
         sortDirections: ['ascend', 'descend', null]
       },
       {
@@ -151,7 +152,7 @@ export class TracingComponent {
         filterMultiple: true,
         showFilter: true,
         showSort: true,
-        showCol: true,
+        showCol: this.displayCols.includes('state'),
         sortDirections: ['ascend', 'descend', null]
       },
       {
@@ -164,7 +165,7 @@ export class TracingComponent {
         filterMultiple: false,
         showFilter: false,
         showSort: true,
-        showCol: true,
+        showCol: this.displayCols.includes('slaDays'),
         sortDirections: ['ascend', 'descend', null]
       },
       {
@@ -177,7 +178,7 @@ export class TracingComponent {
         filterMultiple: false,
         showFilter: false,
         showSort: true,
-        showCol: true,
+        showCol: this.displayCols.includes('requestCreatedDate'),
         sortDirections: ['ascend', 'descend', null]
       },
       {
@@ -190,7 +191,7 @@ export class TracingComponent {
         filterMultiple: false,
         showFilter: false,
         showSort: true,
-        showCol: true,
+        showCol: this.displayCols.includes('requestCompletedDate'),
         sortDirections: ['ascend', 'descend ', null]
       }
     ];
@@ -200,11 +201,19 @@ export class TracingComponent {
         return {
           ...col,
           showFilter: false,
-          showCol: this.displayCols.includes(col.value)
         }
       })
 
     }
+  }
+
+  exportDataAsCSV(): void {
+    exportCSVFromJSON({
+      data: this.tableData,
+      fileName: 'privacy-data',
+      headers: this.colDefs.filter(c => c.showCol).map(c => c.name),
+      keys: this.colDefs.filter(c => c.showCol).map(c => c.value)
+    });
   }
 
   isColumnVisible(colName: string): boolean {

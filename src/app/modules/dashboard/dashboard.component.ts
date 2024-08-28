@@ -189,6 +189,9 @@ export class DashboardComponent {
       case SeriesNames.NonProcessedByServiceOwnerAndRequestType:
         let eventData = event.data as string[];
         eventData[1] = this.services.find(s => s.label === eventData[1])?.value || eventData[1];
+        if (Number(eventData[2]) === 0) {
+          break;
+        }
         this.modalData = this.privacyData.filter(d => d.serviceOwner === eventData[1] && d.requestType === eventData[0] && this.dashboardService.isRequestPending(d));
         this.modalCols = ['requestId', 'requestType', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
         this.openModal(`Data for - ${SeriesNames.NonProcessedByServiceOwnerAndRequestType}`, templateRef);

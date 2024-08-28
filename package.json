@@ -22,6 +22,7 @@
     "@angular/router": "^18.1.3",
     "@ant-design/icons-angular": "^18.0.0",
     "echarts": "^5.5.1",
+    "export-json-to-csv": "^0.0.4",
     "ng-zorro-antd": "^18.1.0",
     "ngx-echarts": "^18.0.0",
     "rxjs": "~7.8.0",

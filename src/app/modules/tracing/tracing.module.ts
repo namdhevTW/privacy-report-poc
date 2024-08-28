@@ -6,10 +6,14 @@ import { NgxEchartsModule } from 'ngx-echarts';
 import { SharedModule } from '@app/shared/shared.module';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
-import { CloseOutline } from '@ant-design/icons-angular/icons';
+import { CloseOutline, ExportOutline } from '@ant-design/icons-angular/icons';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { TracingComponent } from './tracing.component';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import { IconDefinition } from '@ant-design/icons-angular';
+
+const icons: IconDefinition[] = [CloseOutline, ExportOutline];
 
 @NgModule({
   declarations: [
@@ -24,7 +28,8 @@ import { NzTableModule } from 'ng-zorro-antd/table';
     SharedModule,
     NzSegmentedModule,
     NzTableModule,
-    NzIconModule.forChild([CloseOutline]),
+    NzToolTipModule,
+    NzIconModule.forChild(icons),
     NzSelectModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts'),

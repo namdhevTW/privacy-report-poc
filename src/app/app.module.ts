@@ -21,11 +21,11 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzBackTopModule } from 'ng-zorro-antd/back-top';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { IconDefinition } from '@ant-design/icons-angular';
-import { CarryOutOutline, HomeOutline, MenuFoldOutline, MenuUnfoldOutline, PieChartOutline, TableOutline } from '@ant-design/icons-angular/icons';
+import { CarryOutOutline, ExportOutline, HomeOutline, MenuFoldOutline, MenuUnfoldOutline, PieChartOutline, TableOutline } from '@ant-design/icons-angular/icons';
 import { TracingModule } from './modules/tracing/tracing.module';
 
 registerLocaleData(en);
-const icons: IconDefinition[] = [HomeOutline, PieChartOutline, TableOutline, MenuFoldOutline, MenuUnfoldOutline, CarryOutOutline];
+const icons: IconDefinition[] = [HomeOutline, PieChartOutline, TableOutline, MenuFoldOutline, MenuUnfoldOutline, CarryOutOutline, ExportOutline];
 
 @NgModule({
   declarations: [

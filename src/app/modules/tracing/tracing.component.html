@@ -1,6 +1,10 @@
-<div class="p-8">
-  <div class="ml-auto">
+<div [ngClass]="dataForModal && dataForModal.length>0 ? 'p-0' : 'p-6' ">
+  <div class="flex mb-4 justify-end">
     <!-- Filter placeholder -->
+     <a nz-tooltip class="p-2 border border-emerald-300 hover:text-black bg-emerald-200 rounded" (click)="exportDataAsCSV()">
+      <span class="pr-2 font-semibold">Export data</span>
+      <span nz-icon nzType="export" nzTheme="outline"></span>
+     </a>
   </div>
   <nz-table nzBordered #tracingTable [nzData]="tableData" [nzPageSize]="pageSizeLimit" [nzShowPagination]="tableData.length > pageSizeLimit" >
     <thead>

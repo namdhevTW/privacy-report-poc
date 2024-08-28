@@ -22,7 +22,8 @@ import { TracingModule } from "@modules/tracing/tracing.module";
   ],
   exports: [
     DashboardComponent
-  ], imports: [CommonModule,
+  ],
+  imports: [CommonModule,
     FormsModule,
     ReactiveFormsModule,
     SharedModule,
@@ -34,8 +35,10 @@ import { TracingModule } from "@modules/tracing/tracing.module";
     NzSwitchModule,
     NzToolTipModule,
     NzDatePickerModule,
+    TracingModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts'),
-    }), TracingModule], providers: [provideHttpClient(withInterceptorsFromDi())]
+    })],
+  providers: [provideHttpClient(withInterceptorsFromDi())]
 })
 export class DashboardModule { }
