@@ -146,6 +146,11 @@ export class DashboardService {
       serviceOwners = this.fetchServiceOwners().filter(s => s.value === selectedService);
     }
 
+    let serviceOwnerData = serviceOwners.map(s => {
+      const count = data.filter(d => d.serviceOwner === s.value && this.isRequestPending(d)).length;
+      return { value: count, name: s.label };
+    });
+
     return {
       title: {
         text: 'Non-processed Requests by Service Owner',
@@ -165,7 +170,7 @@ export class DashboardService {
       },
       xAxis: {
         type: 'category',
-        data: serviceOwners.map(s => s.label),
+        data: serviceOwnerData.map(d => d.name),
         axisTick: {
           alignWithLabel: true,
         },
@@ -179,6 +184,7 @@ export class DashboardService {
         {
           name: SeriesNames.NonProcessedByServiceOwner,
           type: 'bar',
+          realtimeSort: true,
           showBackground: true,
           itemStyle: {
             color: '#f87171',
@@ -188,10 +194,7 @@ export class DashboardService {
           backgroundStyle: {
             color: 'rgba(220, 220, 220, 0.8)',
           },
-          data: serviceOwners.map(s => {
-            const count = data.filter(d => d.serviceOwner === s.value && this.isRequestPending(d)).length;
-            return count;
-          }).sort((a, b) => b - a),
+          data: serviceOwnerData.map(d => d.value),
           label: {
             show: true,
             position: 'inside',
@@ -492,11 +495,11 @@ export class DashboardService {
     return !(this.isRequestCompleted(data) || this.isRequestRejected(data));
   }
 
-  private isRequestCompleted(data: IPrivacyData): boolean {
+  isRequestCompleted(data: IPrivacyData): boolean {
     return data.currentStage === 'Completed';
   }
 
-  private isRequestRejected(data: IPrivacyData): boolean {
+  isRequestRejected(data: IPrivacyData): boolean {
     return data.currentStage === 'Rejected';
   }
 

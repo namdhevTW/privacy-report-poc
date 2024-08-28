@@ -11,7 +11,9 @@ import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } f
 })
 export class TracingComponent {
   @Input() dataForModal: IPrivacyData[] = [];
-  @Input() modalDisplayTableLimit: number = 5;
+  @Input() displayCols: string[] = [];
+
+  pageSizeLimit: number = 5;
   tableData: IPrivacyData[] = [];
   colDefs: {
     name: string;
@@ -63,7 +65,7 @@ export class TracingComponent {
         }
 
         this.setColumnDefs();
-        this.modalDisplayTableLimit = 10;
+        this.pageSizeLimit = 10;
 
         this.authService.roleChangeSubject.subscribe(role => {
           this.role = role;
@@ -198,9 +200,10 @@ export class TracingComponent {
         return {
           ...col,
           showFilter: false,
-          showCol: !(col.value == 'serviceOwner' || col.value == 'requestCompletedDate')
+          showCol: this.displayCols.includes(col.value)
         }
       })
+
     }
   }
 

@@ -61,19 +61,19 @@
                     <div class="text-xl font-bold">Request stats</div>
                     <div class="text-[1rem] text-slate-500">Overall stats for the applied filter</div>
                     <div class="grid grid-cols-4 py-10 gap-4 mt-4">
-                      <div class="flex flex-col items-center bg-blue-500 text-white border rounded p-2 py-5">
+                      <div class="flex flex-col items-center bg-blue-500 text-white border rounded p-2 py-5 cursor-pointer" (click)="redirectToTracingPage()" (keypress)="redirectToTracingPage()">
                         <div class="text-3xl font-bold ">{{requestStats.all}}</div>
                         <div class="text-lg">All</div>
                       </div>
-                      <div class="flex flex-col items-center bg-red-400 text-white border rounded p-2 py-5">
+                      <div class="flex flex-col items-center bg-red-400 text-white border rounded p-2 py-5 cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">
                         <div class="text-3xl font-bold">{{requestStats.pending}}</div>
                         <div class="text-lg">Pending</div>
                       </div>
-                      <div class="flex flex-col items-center bg-emerald-500 text-white rounded p-2 py-5">
+                      <div class="flex flex-col items-center bg-emerald-500 text-white rounded p-2 py-5 cursor-pointer" (click)="onStatsClickEvent('Completed', tableModal)" (keypress)="onStatsClickEvent('Completed', tableModal)">
                         <div class="text-3xl font-bold">{{requestStats.completed}}</div>
                         <div class="text-lg">Completed</div>
                       </div>
-                      <div class="flex flex-col flex-1 items-center bg-slate-500 text-white rounded p-2 py-5">
+                      <div class="flex flex-col flex-1 items-center bg-slate-500 text-white rounded p-2 py-5 cursor-pointer" (click)="onStatsClickEvent('Rejected', tableModal)" (keypress)="onStatsClickEvent('Rejected', tableModal)">
                         <div class="text-3xl font-bold">{{requestStats.rejected}}</div>
                         <div class="text-lg">Rejected</div>
                       </div>
@@ -107,7 +107,7 @@
           <div class="card rounded border-2 border-gray-500 p-3">
             @if(requestStats.pending > 0) {
             <div class="card-body">
-              <div echarts [options]="requestTypeChartOption" class="h-full"></div>
+              <div echarts [options]="requestTypeChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
             </div>
           } @else {
             <div class="dnf-wrapper">
@@ -135,7 +135,7 @@
           <div class="card rounded border-2 border-gray-500 p-3">
             @if(requestStats.pending > 0) {
             <div class="card-body">
-              <div echarts [options]="serviceOwnerChartOption" class="h-full"></div>
+              <div echarts [options]="serviceOwnerChartOption" class="h-full"  (chartClick)="onChartClickEvent($event, tableModal)"></div>
             </div>
           } @else {
             <div class="dnf-wrapper">
@@ -160,5 +160,5 @@
 }
 
 <ng-template #tableModal let-ref="modelRef">
-  <app-tracing [dataForModal]="modalData"></app-tracing>
+  <app-tracing [dataForModal]="modalData" [displayCols]="modalCols"></app-tracing>
 </ng-template>

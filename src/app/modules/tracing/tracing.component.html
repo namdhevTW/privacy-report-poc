@@ -2,7 +2,7 @@
   <div class="ml-auto">
     <!-- Filter placeholder -->
   </div>
-  <nz-table nzBordered #tracingTable [nzData]="tableData" [nzPageSize]="dataForModal && modalDisplayTableLimit || 10">
+  <nz-table nzBordered #tracingTable [nzData]="tableData" [nzPageSize]="pageSizeLimit" [nzShowPagination]="tableData.length > pageSizeLimit" >
     <thead>
       <tr>
         @for (col of colDefs; track col) {
