@@ -1,6 +1,6 @@
 <div class="p-4 bg-gray-50 w-full h-full" #contentDiv>
   <div class="header flex justify-between w-full h-full relative">
-    <nz-tabset [nzSelectedIndex]="isDashboardComponentCurrentlyLoaded()? 0: 1" nzType="card" class="w-full">
+    <nz-tabset [nzSelectedIndex]="isTracingComponentCurrentlyLoaded()? 1: 0" nzType="card" class="w-full">
       <nz-tab [nzTitle]="dashboardTab">
         <ng-template #dashboardTab>
           <a routerLink="/">
