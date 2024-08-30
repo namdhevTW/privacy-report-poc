@@ -1,7 +1,7 @@
 <div [ngClass]="dataForModal && dataForModal.length>0 ? 'p-0' : 'p-6' ">
   <div class="flex mb-4 justify-end">
     <!-- Settings & tools -->
-     <span nz-icon nzType="reload" nzTheme="outline" class="p-2 cursor-pointer" (click)="loadPrivacyTableData()" (keypress)="loadPrivacyTableData()"></span>
+     <span *ngIf="dataForModal.length==0" nz-icon nz-tooltip nzTooltipTitle="Refresh" nzType="reload" nzTheme="outline" class="p-2 cursor-pointer" (click)="loadPrivacyTableData()" (keypress)="loadPrivacyTableData()"></span>
      <a nz-tooltip class="p-2 border border-emerald-300 hover:text-black bg-emerald-200 rounded" (click)="exportDataAsCSV()">
       <span class="pr-2 font-semibold">Export data</span>
       <span nz-icon nzType="export" nzTheme="outline"></span>

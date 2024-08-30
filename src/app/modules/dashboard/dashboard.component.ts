@@ -1,7 +1,7 @@
 import { Component, TemplateRef } from '@angular/core';
 import { ECElementEvent, EChartsOption } from 'echarts';
 import { IPrivacyData } from '@core/models/interfaces/privacy-data';
-import { DashboardService, SeriesNames, SLAComplianceTypes } from '@core/services/dashboard/dashboard.service';
+import { DashboardService, SeriesNames, SLAChartLabels } from '@core/services/dashboard/dashboard.service';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { NzDatePickerComponent } from 'ng-zorro-antd/date-picker';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -52,7 +52,7 @@ export class DashboardComponent {
   slaChartOption: EChartsOption = {};
   requestTypeChartOption: EChartsOption = {};
   serviceOwnerChartOption: EChartsOption = {};
-  nonProcessedRequestsByCurrentStageChartOption: EChartsOption = {};
+  pendingRequestsByCurrentStageChartOption: EChartsOption = {};
 
   _requestCreatedDateRangeControl: any;
 
@@ -176,38 +176,38 @@ export class DashboardComponent {
   onChartClickEvent(event: ECElementEvent, templateRef: TemplateRef<{}>): void {
     this.modalData = this.privacyData;
     switch (event.seriesName) {
-      case SeriesNames.NonProcessedSLACompliance:
+      case SeriesNames.PendingSLADistribution:
         this.setModalDataBasedOnSLA(event);
         this.modalCols = ['requestId', 'requestType', 'currentStage', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for ${SeriesNames.NonProcessedSLACompliance}`, templateRef);
+        this.openModal(`Data for ${SeriesNames.PendingSLADistribution}`, templateRef);
         break;
-      case SeriesNames.NonProcessedByCurrentStage:
+      case SeriesNames.PendingRequestsByCurrentStage:
         this.modalData = this.privacyData.filter(d => d.currentStage === event.name.replace(/\n/g, ' '));
         this.modalCols = ['requestId', 'currentStage', 'requestCreatedDate', 'slaDays'];
         if (this.role == 'admin') {
           this.modalCols = [...this.modalCols, 'serviceOwner'];
         }
-        this.openModal(`Data for ${SeriesNames.NonProcessedByCurrentStage}`, templateRef);
+        this.openModal(`Data for ${SeriesNames.PendingRequestsByCurrentStage}`, templateRef);
         break;
-      case SeriesNames.NonProcessedByServiceOwnerAndRequestType:
+      case SeriesNames.PendingRequestsByServiceOwnerAndCurrentStage:
         let eventData = event.data as string[];
         eventData[1] = this.services.find(s => s.label === eventData[1])?.value || eventData[1];
         if (Number(eventData[2]) === 0) {
           break;
         }
-        this.modalData = this.privacyData.filter(d => d.serviceOwner === eventData[1] && d.requestType === eventData[0] && this.dashboardService.isRequestPending(d));
-        this.modalCols = ['requestId', 'currentStage', 'requestType', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for ${SeriesNames.NonProcessedByServiceOwnerAndRequestType}`, templateRef);
+        this.modalData = this.privacyData.filter(d => d.serviceOwner === eventData[1] && d.currentStage === eventData[0] && this.dashboardService.isRequestPending(d));
+        this.modalCols = ['requestId', 'currentStage', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
+        this.openModal(`Data for ${SeriesNames.PendingRequestsByServiceOwnerAndCurrentStage}`, templateRef);
         break;
-      case SeriesNames.NonProcessedByServiceOwner:
+      case SeriesNames.PendingByServiceOwner:
         this.setModalDataByServiceOwner(event);
         this.modalCols = ['requestId', 'currentStage', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for ${SeriesNames.NonProcessedByServiceOwner}`, templateRef);
+        this.openModal(`Data for ${SeriesNames.PendingByServiceOwner}`, templateRef);
         break;
-      case SeriesNames.NonProcessedRequestTypeDistribution:
+      case SeriesNames.PendingRequestTypeDistribution:
         this.modalData = this.privacyData.filter(d => d.requestType === event.name && this.dashboardService.isRequestPending(d));
         this.modalCols = ['requestId', 'requestType', 'currentStage', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for ${SeriesNames.NonProcessedRequestTypeDistribution}`, templateRef);
+        this.openModal(`Data for ${SeriesNames.PendingRequestTypeDistribution}`, templateRef);
         break;
       default:
         this.openModal('Current dashboard data', templateRef);
@@ -245,8 +245,8 @@ export class DashboardComponent {
   private setChartOptions(): void {
     this.slaChartOption = this.dashboardService.fetchSLAComplianceChartOptions(this.requestStats);
     this.requestTypeChartOption = this.dashboardService.fetchRequestTypePieChartOptions(this.privacyData);
-    this.serviceOwnerChartOption = this.dashboardService.fetchServiceOwnerRequestTypeHeatMapChartOptions(this.privacyData);
-    this.nonProcessedRequestsByCurrentStageChartOption = this.dashboardService.fetchNonProcessedRequestsByCurrentStageBarChartOption(this.privacyData);
+    this.serviceOwnerChartOption = this.dashboardService.fetchServiceOwnerAndCurrentStageMapChartOption(this.privacyData);
+    this.pendingRequestsByCurrentStageChartOption = this.dashboardService.fetchPendingRequestsByCurrentStageBarChartOption(this.privacyData);
     this.pendingRequestsByServiceOwnerChartOption = this.dashboardService.fetchPendingRequestsDistributionByServiceOwner(this.privacyData, this.selectedService);
   }
 
@@ -276,13 +276,13 @@ export class DashboardComponent {
 
   private setModalDataBasedOnSLA(event: ECElementEvent) {
     switch ((event.data as any)?.name) {
-      case SLAComplianceTypes.BreachedSLA:
+      case SLAChartLabels.ExceedsSLA:
         this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) <= 0);
         break;
-      case SLAComplianceTypes.NearingSLA:
+      case SLAChartLabels.NearingSLA:
         this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7);
         break;
-      case SLAComplianceTypes.InSLA:
+      case SLAChartLabels.MeetsSLA:
         this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) >= 7);
         break;
     }

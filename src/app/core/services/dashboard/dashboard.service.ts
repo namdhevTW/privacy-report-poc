@@ -52,6 +52,10 @@ export class DashboardService {
     return this.originalData.map(d => d.requestType).filter((value, index, self) => self.indexOf(value) === index);
   }
 
+  fetchUniqueCurrentStages(): string[] {
+    return this.originalData.map(d => d.currentStage).filter((value, index, self) => self.indexOf(value) === index);
+  }
+
   applyDashboardFilters(selectedServiceOwner: string, selectedState: string, selectedRequestType: string, selectedStartDate: Date, selectedEndDate: Date, consentModeOn: boolean): IPrivacyData[] {
     let filteredData = this.originalData;
 
@@ -107,13 +111,13 @@ export class DashboardService {
     return Object.keys(requestTypes).map(key => ({ name: key, value: requestTypes[key] }));
   }
 
-  getUniqueServiceOwnersWithRequestTypesAndNonProcessedRequestCount(data: IPrivacyData[]): [requestType: string, serviceOwner: string, count: number][] {
+  getUniqueServiceOwnersWithCurrentStagesAndPendingRequestCount(data: IPrivacyData[]): [requestType: string, serviceOwner: string, count: number][] {
     // Get unique service owners with request types and count and map request type to requestType, service owner to serviceOwner and count to count
     const serviceOwners = data
       .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
-      .map(d => ({ requestType: d.requestType, serviceOwner: d.serviceOwner }))
+      .map(d => ({ currentStage: d.currentStage, serviceOwner: d.serviceOwner }))
       .reduce((acc, curr) => {
-        const key = `${curr.requestType}-${curr.serviceOwner}`;
+        const key = `${curr.currentStage}-${curr.serviceOwner}`;
         acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {} as { [key: string]: number });
@@ -122,18 +126,18 @@ export class DashboardService {
       .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
       .map(d => d.serviceOwner)));
 
-    const uniqueRequestTypes = Array.from(new Set(data
+    const uniqueCurrentStages = Array.from(new Set(data
       .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
-      .map(d => d.requestType)));
+      .map(d => d.currentStage)));
 
     const result: [string, string, number][] = [];
 
-    uniqueRequestTypes.forEach(requestType => {
+    uniqueCurrentStages.forEach(currentStage => {
       uniqueServiceOwners.forEach(serviceOwner => {
-        const key = `${requestType}-${serviceOwner}`;
+        const key = `${currentStage}-${serviceOwner}`;
         const serviceOwnerLabel = this.fetchServiceOwners().find(s => s.value === serviceOwner)?.label ?? serviceOwner;
         const count = serviceOwners[key] || 0;
-        result.push([requestType, serviceOwnerLabel, count]);
+        result.push([currentStage, serviceOwnerLabel, count]);
       });
     });
 
@@ -153,8 +157,8 @@ export class DashboardService {
 
     return {
       title: {
-        text: 'Non-processed Requests by Service Owner',
-        subtext: 'Top 5 Service owners with non-processed requests',
+        text: 'Pending requests by service owner',
+        subtext: 'Top 5 Service owners with pending requests',
         textStyle: this.getFontBasedStyle(20),
         subtextStyle: this.getFontBasedStyle(16),
         left: 'center',
@@ -182,7 +186,7 @@ export class DashboardService {
       },
       series: [
         {
-          name: SeriesNames.NonProcessedByServiceOwner,
+          name: SeriesNames.PendingByServiceOwner,
           type: 'bar',
           realtimeSort: true,
           showBackground: true,
@@ -216,8 +220,8 @@ export class DashboardService {
   fetchSLAComplianceChartOptions(stats: IPrivacyRequestStats): EChartsOption {
     return {
       title: {
-        text: "SLA Compliance",
-        subtext: "SLA compliance of non-processed requests",
+        text: "SLA distribution",
+        subtext: "SLA distribution of pending requests",
         textStyle: this.getFontBasedStyle(20),
         subtextStyle: this.getFontBasedStyle(16),
         left: "center",
@@ -234,7 +238,7 @@ export class DashboardService {
       },
       series: [
         {
-          name: SeriesNames.NonProcessedSLACompliance,
+          name: SeriesNames.PendingSLADistribution,
           type: 'pie',
           height: '140%',
           itemStyle: {
@@ -258,9 +262,9 @@ export class DashboardService {
           },
           color: ['#10b981', '#facc15', '#f87171'],
           data: [
-            { value: stats.inSLA, name: SLAComplianceTypes.InSLA },
-            { value: stats.nearingSLAInAWeek, name: SLAComplianceTypes.NearingSLA },
-            { value: stats.breached, name: SLAComplianceTypes.BreachedSLA },
+            { value: stats.inSLA, name: SLAChartLabels.MeetsSLA },
+            { value: stats.nearingSLAInAWeek, name: SLAChartLabels.NearingSLA },
+            { value: stats.breached, name: SLAChartLabels.ExceedsSLA },
           ],
         },
       ],
@@ -274,7 +278,7 @@ export class DashboardService {
     return {
       title: {
         text: 'Request type distribution',
-        subtext: `Request type distribution for non-processed requests`,
+        subtext: `Request type distribution for pending requests`,
         textStyle: this.getFontBasedStyle(20),
         subtextStyle: {
           fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -303,7 +307,7 @@ export class DashboardService {
       },
       series: [
         {
-          name: SeriesNames.NonProcessedRequestTypeDistribution,
+          name: SeriesNames.PendingRequestTypeDistribution,
           type: 'pie',
           padAngle: 5,
           itemStyle: {
@@ -325,16 +329,16 @@ export class DashboardService {
         },
       ],
       animationType: 'scale',
-      animationEasing: 'quadraticOut',
+      animationEasing: 'sinusoidalIn',
       animationDelay: () => Math.random() * 200,
     };
   }
 
-  fetchServiceOwnerRequestTypeHeatMapChartOptions(data: IPrivacyData[]): EChartsOption {
+  fetchServiceOwnerAndCurrentStageMapChartOption(data: IPrivacyData[]): EChartsOption {
     return {
       title: {
-        text: 'Non-processed Request types per Service Owner',
-        subtext: `Non-processed Request types per Service Owner for the non-processed requests`,
+        text: 'Pending current stages per service owner',
+        subtext: `Pending requests by service owners based on current stages`,
         textStyle: this.getFontBasedStyle(20),
         subtextStyle: {
           fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -355,7 +359,7 @@ export class DashboardService {
       },
       xAxis: {
         type: 'category',
-        data: this.fetchUniqueRequestTypes(),
+        data: this.fetchUniqueCurrentStages().filter(d => d !== 'Completed' && d !== 'Rejected'),
         splitArea: {
           show: true,
         },
@@ -372,7 +376,7 @@ export class DashboardService {
       },
       visualMap: {
         min: 0,
-        max: 10, //Math.max(...this.getUniqueServiceOwnersWithRequestTypesAndNonProcessedRequestCount().map(d => d[2])),
+        max: 10,
         showLabel: true,
         borderMiterLimit: 1,
         calculable: true,
@@ -387,9 +391,9 @@ export class DashboardService {
       },
       series: [
         {
-          name: SeriesNames.NonProcessedByServiceOwnerAndRequestType,
+          name: SeriesNames.PendingRequestsByServiceOwnerAndCurrentStage,
           type: 'heatmap',
-          data: this.getUniqueServiceOwnersWithRequestTypesAndNonProcessedRequestCount(data).map(d => [d[0], d[1], d[2]]),
+          data: this.getUniqueServiceOwnersWithCurrentStagesAndPendingRequestCount(data).map(d => [d[0], d[1], d[2]]),
           emphasis: {
             itemStyle: {
               shadowBlur: 10,
@@ -408,7 +412,7 @@ export class DashboardService {
     };
   }
 
-  fetchNonProcessedRequestsByCurrentStageBarChartOption(data: IPrivacyData[]): EChartsOption {
+  fetchPendingRequestsByCurrentStageBarChartOption(data: IPrivacyData[]): EChartsOption {
     let currentStageCounts = data.filter(d => this.isRequestPending(d)).map(d => d.currentStage).reduce((acc, curr) => {
       acc[curr] = (acc[curr] || 0) + 1;
       return acc;
@@ -423,8 +427,8 @@ export class DashboardService {
 
     return {
       title: {
-        text: 'Non-processed Requests by Current Stage',
-        subtext: 'Top 10 stages of non-processed requests',
+        text: 'Pending requests by current Stage',
+        subtext: 'Top 10 stages of pending requests',
         textStyle: this.getFontBasedStyle(20),
         subtextStyle: {
           fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -464,7 +468,7 @@ export class DashboardService {
       series:
         [
           {
-            name: SeriesNames.NonProcessedByCurrentStage,
+            name: SeriesNames.PendingRequestsByCurrentStage,
             type: 'bar',
             label: {
               show: true,
@@ -523,15 +527,15 @@ export enum EChartType {
 }
 
 export enum SeriesNames {
-  NonProcessedByServiceOwner = 'Non-processed requests distribution by Service Owner',
-  NonProcessedSLACompliance = 'Non-processed SLA Compliance',
-  NonProcessedRequestTypeDistribution = 'Non-processed request type distribution',
-  NonProcessedByCurrentStage = 'Non-processed requests by current stage',
-  NonProcessedByServiceOwnerAndRequestType = 'Non-processed requests by service owner and request type',
+  PendingByServiceOwner = 'Pending requests distribution by Service Owner',
+  PendingSLADistribution = 'Pending SLA distribution',
+  PendingRequestTypeDistribution = 'Pending requests - request type distribution',
+  PendingRequestsByCurrentStage = 'Pending requests by current stage',
+  PendingRequestsByServiceOwnerAndCurrentStage = 'Pending requests by service owner and current stage',
 }
 
-export enum SLAComplianceTypes {
-  InSLA = 'Compliant',
+export enum SLAChartLabels {
+  MeetsSLA = 'Meets SLA',
   NearingSLA = 'Nearing SLA',
-  BreachedSLA = 'Exceeded SLA',
+  ExceedsSLA = 'Exceeds SLA',
 }

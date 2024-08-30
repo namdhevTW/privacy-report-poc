@@ -1,6 +1,6 @@
 <div class="grid grid-cols-6 gap-8 items-center p-4 bg-gray-50 mt-3">
   <div class="col-span-1 mr-auto">
-    <nz-segmented [nzOptions]="['Non-processed', 'Processed']" [(ngModel)]="selectedTab" (ngModelChange)="changeSelectedTab($event)" nzSize="large"></nz-segmented>
+    <nz-segmented [nzOptions]="['Pending', 'Completed']" [(ngModel)]="selectedTab" (ngModelChange)="changeSelectedTab($event)" nzSize="large"></nz-segmented>
   </div>
 
   <!--#region: filters-->
@@ -85,7 +85,7 @@
                     <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
                   } @else {
                     <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
-                      <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
+                      <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
                     </div>
                   }
                 </div>
@@ -103,7 +103,7 @@
           </div>
         </div>
         <div class="col-span-2 p-3">
-          <!-- Request type distribution chart for Non-processed requests -->
+          <!-- Request type distribution chart for Pending requests -->
           <div class="card rounded border-2 border-gray-500 p-3">
             @if(requestStats.pending > 0) {
             <div class="card-body">
@@ -111,7 +111,7 @@
             </div>
           } @else {
             <div class="dnf-wrapper">
-              <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
+              <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
             </div>
           }
           </div>
@@ -121,17 +121,17 @@
           <div class="card rounded border-2 border-gray-500 p-3">
           @if(requestStats.pending > 0) {
             <div class="card-body">
-              <div echarts [options]="nonProcessedRequestsByCurrentStageChartOption" (chartClick)="onChartClickEvent($event, tableModal)" class="h-full"></div>
+              <div echarts [options]="pendingRequestsByCurrentStageChartOption" (chartClick)="onChartClickEvent($event, tableModal)" class="h-full"></div>
             </div>
           } @else {
             <div class="dnf-wrapper">
-              <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
+              <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
             </div>
           }
         </div>
         </div>
         <div class="col-span-6 p-3">
-          <!-- Heatmap of service owners against request types for non-processed requests -->
+          <!-- Heatmap of service owners against request types for pending requests -->
           <div class="card rounded border-2 border-gray-500 p-3">
             @if(requestStats.pending > 0) {
             <div class="card-body">
@@ -139,7 +139,7 @@
             </div>
           } @else {
             <div class="dnf-wrapper">
-              <nz-empty nzNotFoundContent="There are no non-processed requests for the applied filter"></nz-empty>
+              <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
             </div>
           }
           </div>
@@ -155,7 +155,7 @@
     <!--#endregion-->
   }
   @case (1) {
-    <span class="text-3xl font-bold">Processed metrics</span>
+    <span class="text-3xl font-bold">Completed metrics</span>
   }
 }
 
