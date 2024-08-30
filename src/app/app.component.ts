@@ -17,12 +17,22 @@ export class AppComponent {
 
   constructor(private dataService: DataService, private authService: AuthService, private route: ActivatedRoute) {
     document.title = 'Privacy reporting portal';
+    this.serviceOwners = this.dataService.serviceMapping.map(service => ({ value: service.value, label: service.name }));
+  }
+
+  ngOnInit(): void {
+    if (this.serviceOwners.length === 0) {
+      this.dataService.getServices().subscribe(
+        data => {
+          this.serviceOwners = data.map(service => ({ value: service.value, label: service.name }));
+        }
+      );
+    }
   }
 
   changeRole(selectedRole: string) {
     this.role = selectedRole || "admin";
     if (this.role === "service-owner") {
-      this.serviceOwners = this.dataService.getServices();
       this.selectedServiceOwner = this.serviceOwners[0].value;
     }
     this.authService.setRole(this.role);

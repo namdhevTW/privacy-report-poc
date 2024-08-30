@@ -4,6 +4,7 @@ import { DataService } from '../data/data.service';
 import { Observable, tap } from 'rxjs';
 import { EChartsOption } from 'echarts';
 import { IPrivacyRequestStats } from '@app/core/models/interfaces/privacy-request-stats';
+import { IServiceMapping } from '@app/core/models/interfaces/service-mapping';
 
 @Injectable({
   providedIn: 'root'
@@ -14,12 +15,19 @@ export class DashboardService {
   rightToLimitUseTypeText = 'Right to limit use';
 
   originalData: IPrivacyData[] = [];
+  serviceMapping: IServiceMapping[] = [];
 
   constructor(private dataService: DataService) { }
 
   getDashboardData(): Observable<IPrivacyData[]> {
     return this.dataService.getPrivacyData().pipe(
       tap(data => this.originalData = data)
+    );
+  }
+
+  getServiceMappingData(): Observable<IServiceMapping[]> {
+    return this.dataService.getServices().pipe(
+      tap(data => this.serviceMapping = data)
     );
   }
 
@@ -42,10 +50,6 @@ export class DashboardService {
 
   fetchStateOptions(): { value: string, label: string }[] {
     return this.dataService.getStates()
-  }
-
-  fetchServiceOwners(): { value: string, label: string }[] {
-    return this.dataService.getServices()
   }
 
   fetchUniqueRequestTypes(): string[] {
@@ -135,7 +139,7 @@ export class DashboardService {
     uniqueCurrentStages.forEach(currentStage => {
       uniqueServiceOwners.forEach(serviceOwner => {
         const key = `${currentStage}-${serviceOwner}`;
-        const serviceOwnerLabel = this.fetchServiceOwners().find(s => s.value === serviceOwner)?.label ?? serviceOwner;
+        const serviceOwnerLabel = this.serviceMapping.find(s => s.value === serviceOwner)?.name ?? serviceOwner;
         const count = serviceOwners[key] || 0;
         result.push([currentStage, serviceOwnerLabel, count]);
       });
@@ -145,14 +149,14 @@ export class DashboardService {
   }
 
   fetchPendingRequestsDistributionByServiceOwner(data: IPrivacyData[], selectedService: string): EChartsOption {
-    let serviceOwners = this.fetchServiceOwners().slice(0, 5);
+    let serviceOwners = this.serviceMapping.slice(0, 5);
     if (selectedService && selectedService !== 'all') {
-      serviceOwners = this.fetchServiceOwners().filter(s => s.value === selectedService);
+      serviceOwners = this.serviceMapping.filter(s => s.value === selectedService);
     }
 
     let serviceOwnerData = serviceOwners.map(s => {
       const count = data.filter(d => d.serviceOwner === s.value && this.isRequestPending(d)).length;
-      return { value: count, name: s.label };
+      return { value: count, name: s.name };
     });
 
     return {
@@ -367,7 +371,7 @@ export class DashboardService {
       },
       yAxis: {
         type: 'category',
-        data: this.fetchServiceOwners().map(d => d.label),
+        data: this.serviceMapping.map(d => d.name),
         splitArea: {
           show: true,
         },

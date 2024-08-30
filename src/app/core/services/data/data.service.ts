@@ -2,11 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { IPrivacyData } from '../../models/interfaces/privacy-data';
+import { IServiceMapping } from '@app/core/models/interfaces/service-mapping';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DataService {
+  serviceMapping: IServiceMapping[] = [];
 
   private _data: IPrivacyData[] = [];
   constructor(private http: HttpClient) { }
@@ -22,14 +24,10 @@ export class DataService {
     ];
   }
 
-  getServices(): { value: string, label: string }[] {
-    return [
-      { value: "service-1", label: "Service 1" },
-      { value: "service-2", label: "Service 2" },
-      { value: "service-3", label: "Service 3" },
-      { value: "service-4", label: "Service 4" },
-      { value: "service-5", label: "Service 5" },
-    ];
+  getServices(): Observable<IServiceMapping[]> {
+    return this.http.get<IServiceMapping[]>('assets/data/service-mapping.json').pipe(
+      tap(data => this.serviceMapping = data)
+    );
   }
 
   getRequestTypes(): string[] {

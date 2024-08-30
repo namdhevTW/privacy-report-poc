@@ -4,6 +4,7 @@ import { AuthService } from '@app/core/services/auth/auth.service';
 import { DataService } from '@app/core/services/data/data.service';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
 import { exportCSVFromJSON } from 'export-json-to-csv';
+import { IServiceMapping } from '@app/core/models/interfaces/service-mapping';
 
 @Component({
   selector: 'app-tracing',
@@ -14,7 +15,12 @@ export class TracingComponent {
   @Input() dataForModal: IPrivacyData[] = [];
   @Input() displayCols: string[] = ['requestId', 'requestType', 'serviceOwner', 'currentStage', 'state', 'slaDays', 'requestCreatedDate', 'requestCompletedDate'];
   @Input() pageSizeLimit: number = 10;
+
+  allChecked = false;
+  indeterminate = false;
   tableData: IPrivacyData[] = [];
+  displayedData: readonly IPrivacyData[] = [];
+
   colDefs: {
     name: string;
     value: string;
@@ -33,15 +39,23 @@ export class TracingComponent {
 
   private role: string = 'admin';
   private serviceOwner: string = '';
+  private _selectedRequestServiceDataForEmail: { requestId: string, service: string }[] = [];
+  private _availableServices: IServiceMapping[] = [];
 
   constructor(
     private dataService: DataService,
     private authService: AuthService,
   ) {
     this.stateOptions = this.dataService.getStates();
+    this._availableServices = this.dataService.serviceMapping;
   }
 
   ngOnInit(): void {
+    if (this._availableServices.length === 0) {
+      this.dataService.getServices().subscribe(
+        data => this._availableServices = data
+      );
+    }
     this.loadTableData();
   }
 
@@ -90,6 +104,62 @@ export class TracingComponent {
     });
   }
 
+  confirmSendEmail(): void {
+    //TODO: Implement this method
+  }
+
+  onPageChange(eventData: readonly IPrivacyData[]): void {
+    this.displayedData = eventData.filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected');
+    this.refreshCheckedStatus();
+  }
+
+  onSendEmailCheckedAll(checked: boolean): void {
+    this._selectedRequestServiceDataForEmail = checked ? this.displayedData.map(d => ({ requestId: d.requestId, service: d.serviceOwner })) : [];
+    this.refreshCheckedStatus();
+  }
+
+  getRowsCheckedForSendingEmail(): number {
+    return this._selectedRequestServiceDataForEmail.length;
+  }
+
+  checkReqIdServiceInEmailSendData(data: IPrivacyData): boolean {
+    return this._selectedRequestServiceDataForEmail.some(d => d.requestId === data.requestId && d.service === data.serviceOwner);
+  }
+
+  onSendEmailRowChecked(checked: boolean, data: IPrivacyData): void {
+    if (checked) {
+      this._selectedRequestServiceDataForEmail.push({ requestId: data.requestId, service: data.serviceOwner });
+    } else {
+      this._selectedRequestServiceDataForEmail = this._selectedRequestServiceDataForEmail.filter(d => d.requestId !== data.requestId || d.service !== data.serviceOwner);
+    }
+    this.refreshCheckedStatus();
+  }
+
+  getServiceEmailTooltip(service: string): string {
+    return `Send email to:\n${this._availableServices.find(s => s.value === service)?.emails ?? ''}`;
+  }
+
+  openSendEmailModal(data: IPrivacyData): void {
+    //TODO: Implement this method
+  }
+
+  isProcessedData(data: IPrivacyData): boolean {
+    return data.currentStage === 'Completed' || data.currentStage === 'Rejected';
+  }
+
+  exportDataAsCSV(): void {
+    exportCSVFromJSON({
+      data: this.tableData,
+      fileName: 'privacy-data',
+      headers: this.colDefs.filter(c => c.showCol).map(c => c.name),
+      keys: this.colDefs.filter(c => c.showCol).map(c => c.value)
+    });
+  }
+
+  isColumnVisible(colName: string): boolean {
+    return this.colDefs.find(c => c.value === colName)?.showCol ?? false;
+  }
+
   private loadTableData() {
     if (this.dataForModal.length > 0) {
       this.tableData = this.dataForModal;
@@ -97,6 +167,11 @@ export class TracingComponent {
     } else {
       this.loadPrivacyTableData();
     }
+  }
+
+  private refreshCheckedStatus(): void {
+    this.allChecked = this.displayedData.every(data => this._selectedRequestServiceDataForEmail.some(d => d.requestId === data.requestId && d.service === data.serviceOwner));
+    this.indeterminate = this.displayedData.some(data => this._selectedRequestServiceDataForEmail.some(d => d.requestId === data.requestId && d.service === data.serviceOwner)) && !this.allChecked;
   }
 
   private setColumnDefs(): void {
@@ -145,7 +220,7 @@ export class TracingComponent {
         value: 'serviceOwner',
         sortOrder: null,
         sortFn: (a: IPrivacyData, b: IPrivacyData) => a.serviceOwner.localeCompare(b.serviceOwner),
-        listOfFilter: this.dataService.getServices().map(s => ({ text: s.label, value: s.value })),
+        listOfFilter: this._availableServices.map(s => ({ text: s.name, value: s.value })),
         filterFn: (value: string[], item: IPrivacyData) => value.some(v => item.serviceOwner === v),
         filterMultiple: true,
         showFilter: this.isAdmin(),
@@ -216,19 +291,6 @@ export class TracingComponent {
       })
 
     }
-  }
-
-  exportDataAsCSV(): void {
-    exportCSVFromJSON({
-      data: this.tableData,
-      fileName: 'privacy-data',
-      headers: this.colDefs.filter(c => c.showCol).map(c => c.name),
-      keys: this.colDefs.filter(c => c.showCol).map(c => c.value)
-    });
-  }
-
-  isColumnVisible(colName: string): boolean {
-    return this.colDefs.find(c => c.value === colName)?.showCol ?? false;
   }
 
   private isAdmin(): boolean {

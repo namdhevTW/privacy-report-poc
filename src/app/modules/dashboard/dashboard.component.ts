@@ -65,27 +65,35 @@ export class DashboardComponent {
     this.states = this.dashboardService.fetchStateOptions();
     this.states.unshift({ value: 'all', label: 'All' });
 
-    this.services = this.dashboardService.fetchServiceOwners();
-    this.services.unshift({ value: 'all', label: 'All' });
+    this.services = this.dashboardService.serviceMapping?.map(service => ({ value: service.value, label: service.name })) || [];
+    if (this.services.length > 0) {
+      this.services.unshift({ value: 'all', label: 'All' });
+    }
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.dashboardService.getDashboardData().subscribe((data) => {
       this.privacyData = data;
 
       this.requestTypes = this.dashboardService.fetchUniqueRequestTypes();
       this.requestTypes.unshift('All');
 
-      this.role = this.authService.role;
-      if (this.role === 'service-owner') {
-        this.selectedService = this.authService.serviceOwner;
-        this.applyFilter();
-      }
-      this.updateRequestStats(this.privacyData);
-      this.setChartOptions();
-      this.setDefaultRequestCreatedDateRange();
-    });
+      if (this.services.length === 0) {
+        this.dashboardService.getServiceMappingData().subscribe((data) => {
+          this.services = data.map(service => ({ value: service.value, label: service.name }));
+          this.services.unshift({ value: 'all', label: 'All' });
 
+          this.role = this.authService.role;
+          if (this.role === 'service-owner') {
+            this.selectedService = this.authService.serviceOwner;
+            this.applyFilter();
+          }
+          this.updateRequestStats(this.privacyData);
+          this.setChartOptions();
+          this.setDefaultRequestCreatedDateRange();
+        });
+      }
+    });
 
     this.authService.roleChangeSubject.subscribe((role) => {
       this.role = role;
@@ -103,15 +111,15 @@ export class DashboardComponent {
     });
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.modalData = [];
   }
 
-  changeSelectedTab(tab: number) {
+  changeSelectedTab(tab: number): void {
     this.selectedTab = tab;
   }
 
-  changeSelectedState(stateSelected: string) {
+  changeSelectedState(stateSelected: string): void {
     this.selectedState = stateSelected;
   }
 
@@ -123,7 +131,7 @@ export class DashboardComponent {
     return date > new Date() || date < new Date('2018-01-01');
   }
 
-  changeSelectedRequestCreatedDate(result: Date) {
+  changeSelectedRequestCreatedDate(result: Date): void {
     if (Array.isArray(result)) {
       if (result.length > 0) {
         this.selectedStartDate = result[0];
@@ -135,7 +143,7 @@ export class DashboardComponent {
     }
   }
 
-  changeSelectedRequestCompletedDate(result: Date) {
+  changeSelectedRequestCompletedDate(result: Date): void {
     if (Array.isArray(result)) {
       this.selectedStartDate = result[0];
       this.selectedEndDate = result[1];
@@ -215,13 +223,13 @@ export class DashboardComponent {
     }
   }
 
-  applyFilter() {
+  applyFilter(): void {
     this.privacyData = this.dashboardService.applyDashboardFilters(this.selectedService, this.selectedState, this.selectedRequestType, this.selectedStartDate, this.selectedEndDate, this.consentModeOn);
     this.updateRequestStats(this.privacyData);
     this.setChartOptions();
   }
 
-  removeFilter() {
+  removeFilter(): void {
     this.selectedState = 'all';
     this.selectedRequestType = 'All';
     this.consentModeOn = false;
@@ -237,7 +245,7 @@ export class DashboardComponent {
     this.setChartOptions();
   }
 
-  private clearRequestCreatedDateInputs() {
+  private clearRequestCreatedDateInputs(): void {
     this._requestCreatedDateRangeControl.rangePickerInputs.first.nativeElement.value = '';
     this._requestCreatedDateRangeControl.rangePickerInputs.last.nativeElement.value = '';
   }
@@ -255,7 +263,7 @@ export class DashboardComponent {
     this.selectedEndDate = new Date();
   }
 
-  private updateRequestStats(data: IPrivacyData[]) {
+  private updateRequestStats(data: IPrivacyData[]): void {
     this.requestStats = this.dashboardService.calculateTotals(data);
   }
 
@@ -268,13 +276,12 @@ export class DashboardComponent {
     });
   }
 
-  private setModalDataByServiceOwner(event: ECElementEvent) {
-    let serviceOwners = this.dashboardService.fetchServiceOwners();
-    serviceOwners = serviceOwners.filter(s => s.label === event.name);
+  private setModalDataByServiceOwner(event: ECElementEvent): void {
+    let serviceOwners = this.services.filter(s => s.label === event.name);
     this.modalData = this.privacyData.filter(d => d.serviceOwner === serviceOwners[0].value);
   }
 
-  private setModalDataBasedOnSLA(event: ECElementEvent) {
+  private setModalDataBasedOnSLA(event: ECElementEvent): void {
     switch ((event.data as any)?.name) {
       case SLAChartLabels.ExceedsSLA:
         this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) <= 0);

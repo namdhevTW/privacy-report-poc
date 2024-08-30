@@ -1,53 +1,56 @@
 <div [ngClass]="dataForModal && dataForModal.length>0 ? 'p-0' : 'p-6' ">
-  <div class="flex mb-4 justify-end">
+  <div class="flex mb-4 justify-between">
+    <div class="flex items-center">
+      <h1 class="text-2xl font-semibold mr-3">Tracing</h1>
+      <button nz-button nzType="primary" class="flex items-center" *ngIf="dataForModal.length === 0 && getRowsCheckedForSendingEmail() > 1"
+        (click)="confirmSendEmail()">
+        <span nz-icon nzType="mail"></span>
+        Send {{getRowsCheckedForSendingEmail()}} emails
+      </button>
+    </div>
     <!-- Settings & tools -->
-     <span *ngIf="dataForModal.length==0" nz-icon nz-tooltip nzTooltipTitle="Refresh" nzType="reload" nzTheme="outline" class="p-2 cursor-pointer" (click)="loadPrivacyTableData()" (keypress)="loadPrivacyTableData()"></span>
-     <a nz-tooltip class="p-2 border border-emerald-300 hover:text-black bg-emerald-200 rounded" (click)="exportDataAsCSV()">
-      <span class="pr-2 font-semibold">Export data</span>
-      <span nz-icon nzType="export" nzTheme="outline"></span>
-     </a>
+    <div class="flex items-center">
+      <span *ngIf="dataForModal.length==0" nz-icon nz-tooltip nzTooltipTitle="Refresh" nzType="reload" nzTheme="outline"
+        class="p-2 cursor-pointer" (click)="loadPrivacyTableData()" (keypress)="loadPrivacyTableData()"></span>
+      <a nz-tooltip class="p-2 border border-emerald-300 hover:text-black bg-emerald-200 rounded"
+        (click)="exportDataAsCSV()">
+        <span class="pr-2 font-semibold">Export data</span>
+        <span nz-icon nzType="export" nzTheme="outline"></span>
+      </a>
+    </div>
   </div>
-  <nz-table nzBordered #tracingTable [nzData]="tableData" [nzPageSize]="pageSizeLimit" [nzShowPagination]="tableData.length > pageSizeLimit" >
+  <nz-table nzBordered #tracingTable [nzData]="tableData" [nzPageSize]="pageSizeLimit"
+    [nzShowPagination]="tableData.length > pageSizeLimit" [nzShowQuickJumper]="true"
+    (nzCurrentPageDataChange)="onPageChange($event)">
     <thead>
       <tr>
+        <th *ngIf="dataForModal.length == 0" nzShowCheckbox="true" scope="col" [(nzChecked)]="allChecked"
+          [nzIndeterminate]="indeterminate" (nzCheckedChange)="onSendEmailCheckedAll($event)" nzLabel="Select all">
+        </th>
         @for (col of colDefs; track col) {
-          @if (col.name === 'requestCreatedDate') {
-          <th
-            *ngIf="col.showCol"
-            [nzSortFn]="col.sortFn"
-            [nzSortOrder]="col.sortOrder"
-            [nzSortFn]="col.sortFn"
-            [nzSortDirections]="col.sortDirections"
-            [nzFilterMultiple]="col.filterMultiple"
-            [nzShowFilter]="col.showFilter"
-            [nzFilters]="col.listOfFilter"
-            [nzFilterFn]="col.filterFn"
-            [nzShowSort]="col.showSort"
-            scope="col"
-            nzAlign="center">
-            {{col.name}}</th>
-          }
-          @else {
-          <th
-            *ngIf="col.showCol"
-            [nzSortFn]="col.sortFn"
-            [nzSortOrder]="col.sortOrder"
-            [nzSortFn]="col.sortFn"
-            [nzSortDirections]="col.sortDirections"
-            [nzFilterMultiple]="col.filterMultiple"
-            [nzFilters]="col.listOfFilter"
-            [nzShowFilter]="col.showFilter"
-            [nzShowSort]="col.showSort"
-            [nzFilterFn]="col.filterFn"
-            scope="col"
-            nzAlign="center">
-            {{col.name}}</th>
-          }
+        @if (col.name === 'requestCreatedDate') {
+        <th *ngIf="col.showCol" nzDisabled="dataForModal.length>0" [nzSortFn]="col.sortFn" [nzSortOrder]="col.sortOrder"
+          [nzSortFn]="col.sortFn" [nzSortDirections]="col.sortDirections" [nzFilterMultiple]="col.filterMultiple"
+          [nzShowFilter]="col.showFilter" [nzFilters]="col.listOfFilter" [nzFilterFn]="col.filterFn"
+          [nzShowSort]="col.showSort" scope="col" nzAlign="center">
+          {{col.name}}</th>
         }
+        @else {
+        <th *ngIf="col.showCol" [nzSortFn]="col.sortFn" [nzSortOrder]="col.sortOrder" [nzSortFn]="col.sortFn"
+          [nzSortDirections]="col.sortDirections" [nzFilterMultiple]="col.filterMultiple" [nzFilters]="col.listOfFilter"
+          [nzShowFilter]="col.showFilter" [nzShowSort]="col.showSort" [nzFilterFn]="col.filterFn" scope="col"
+          nzAlign="center">
+          {{col.name}}</th>
+        }
+        }
+        <th nzRight scope="col">Action</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let privData of tracingTable.data">
+        <td *ngIf="dataForModal.length == 0" nzShowCheckbox="true" [nzDisabled]="isProcessedData(privData)"
+          [nzChecked]="checkReqIdServiceInEmailSendData(privData)"
+          (nzCheckedChange)="onSendEmailRowChecked($event, privData)"></td>
         <td *ngIf="isColumnVisible('requestId')">{{ privData.requestId }}</td>
         <td *ngIf="isColumnVisible('requestType')">{{ privData.requestType }}</td>
         <td *ngIf="isColumnVisible('currentStage')">{{ privData.currentStage }}</td>
@@ -55,7 +58,14 @@
         <td *ngIf="isColumnVisible('state')">{{displayFullState(privData.state)}}</td>
         <td *ngIf="isColumnVisible('slaDays')">{{privData.slaDays}}</td>
         <td *ngIf="isColumnVisible('requestCreatedDate')">{{ privData.requestCreatedDate | date: 'dd-MMM-yyyy' }}</td>
-        <td *ngIf="isColumnVisible('requestCompletedDate')">{{privData.requestCompletedDate | date: 'dd-MMM-yyyy' }}</td>
+        <td *ngIf="isColumnVisible('requestCompletedDate')">{{privData.requestCompletedDate | date: 'dd-MMM-yyyy' }}
+        </td>
+        <td *ngIf="dataForModal.length == 0" nzAlign="center" nzRight>
+          <a *ngIf="!isProcessedData(privData)" nz-tooltip
+            [nzTooltipTitle]="getServiceEmailTooltip(privData.serviceOwner)" (click)="openSendEmailModal(privData)">
+            <span nz-icon nzType="mail" nzTheme="outline" class="cursor-pointer"></span>
+          </a>
+        </td>
       </tr>
     </tbody>
   </nz-table>

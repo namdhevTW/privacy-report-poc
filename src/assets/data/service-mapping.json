@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Service 1",
+    "description": "Service 1 description",
+    "value": "service-1",
+    "emails": "abc@gmail.com,tester@abc.com,service-dl@abc.com"
+  },
+  {
+    "name": "Service 2",
+    "description": "Service 2 description",
+    "value": "service-2",
+    "emails": "def@gmail.com,tester@bcd.com,service-dl@bcd.com"
+  },
+  {
+    "name": "Service 3",
+    "description": "Service 3 description",
+    "value": "service-3",
+    "emails": "ghi@gmail.com,tester@ghi.com,service-dl@ghi.com"
+  },
+  {
+    "name": "Service 4",
+    "description": "Service 4 description",
+    "value": "service-4",
+    "emails": "jkl@gmail.com,tester@jkl.com,service-dl@jkl.com"
+  },
+  {
+    "name": "Service 5",
+    "description": "Service 5 description",
+    "value": "service-5",
+    "emails": "mno@gmail.com,tester@mno.com,service-dl@mno.com"
+  }
+]

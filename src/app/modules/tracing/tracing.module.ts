@@ -12,6 +12,7 @@ import { TracingComponent } from './tracing.component';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { IconDefinition } from '@ant-design/icons-angular';
+import { NzButtonModule } from 'ng-zorro-antd/button';
 
 const icons: IconDefinition[] = [CloseOutline, ExportOutline];
 
@@ -29,6 +30,7 @@ const icons: IconDefinition[] = [CloseOutline, ExportOutline];
     NzSegmentedModule,
     NzTableModule,
     NzToolTipModule,
+    NzButtonModule,
     NzIconModule.forChild(icons),
     NzSelectModule,
     NgxEchartsModule.forRoot({
