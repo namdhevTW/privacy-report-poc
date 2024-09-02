@@ -43,7 +43,7 @@
           {{col.name}}</th>
         }
         }
-        <th nzRight scope="col">Action</th>
+        <th nzRight scope="col" *ngIf="dataForModal.length==0">Action</th>
       </tr>
     </thead>
     <tbody>
