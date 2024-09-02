@@ -9,7 +9,7 @@
     "name": "Service 2",
     "description": "Service 2 description",
     "value": "service-2",
-    "emails": "def@gmail.com,tester@bcd.com,service-dl@bcd.com"
+    "emails": "def@gmail.com,tester@def.com,service-dl@def.com"
   },
   {
     "name": "Service 3",

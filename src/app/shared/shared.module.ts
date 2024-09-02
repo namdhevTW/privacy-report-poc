@@ -1,21 +1,23 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DraftEmailComponent } from './draft-email/draft-email.component';
-import { QuillModule } from 'ngx-quill';
-import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FormsModule } from '@angular/forms';
-
-
+import { QuillModule } from 'ngx-quill';
+import { NzMessageModule } from 'ng-zorro-antd/message';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @NgModule({
   declarations: [DraftEmailComponent],
   imports: [
     CommonModule,
     FormsModule,
-    NzToolTipModule,
+    NzMessageModule,
     NzSelectModule,
-    QuillModule.forRoot(),
+    NzButtonModule,
+    NzSpinModule,
+    QuillModule
   ],
   exports: [DraftEmailComponent]
 })

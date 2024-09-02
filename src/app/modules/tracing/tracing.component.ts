@@ -9,7 +9,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { IServiceNotificationEmailDraftInput } from '@app/core/models/interfaces/service-notification-email-draft-input';
 
 @Component({
-  selector: 'app-tracing',
+  selector: 'tracing',
   templateUrl: './tracing.component.html',
   styleUrls: ['./tracing.component.css']
 })
@@ -109,11 +109,12 @@ export class TracingComponent {
   }
 
   draftSendEmail(templateRef: TemplateRef<{}>): void {
+    this.serviceEmailInput = [];
     this._selectedRequestServiceDataForEmail.forEach(d => {
       this.serviceEmailInput.push({
         serviceLabel: this._availableServices.find(s => s.value === d.service)?.name ?? '',
         emailAddress: this._availableServices.find(s => s.value === d.service)?.emails ?? '',
-        requestDetails: this.tableData
+        requestDetails: this.displayedData
           .filter(td => td.requestId === d.requestId)
           .map(td => ({ requestId: td.requestId, currentStage: td.currentStage, requestDate: td.requestCreatedDate }))
       });
@@ -123,33 +124,33 @@ export class TracingComponent {
     this.serviceEmailInput = this.serviceEmailInput.reduce((acc: IServiceNotificationEmailDraftInput[], curr) => {
       const existingService = acc.find(s => s.serviceLabel === curr.serviceLabel);
       if (existingService) {
-        existingService.requestDetails =
-          existingService.requestDetails.concat(curr.requestDetails.filter(rd => !existingService.requestDetails.some(erd => erd.requestId === rd.requestId)));
+        existingService.requestDetails = [...existingService.requestDetails, ...curr.requestDetails];
       } else {
         acc.push(curr);
       }
       return acc;
     }, []);
 
-    this.modalService.create({
-      nzTitle: 'Draft service notification email',
+    let modalRef = this.modalService.create({
+      nzTitle: 'Draft and send service notification email',
       nzContent: templateRef,
       nzWidth: '60%',
-      nzOnOk: () => {
-        // this._selectedRequestServiceDataForEmail = [];
-      },
-      nzOnCancel: () => {
-        // this._selectedRequestServiceDataForEmail = [];
-      }
+      nzFooter: null,
+      nzMaskClosable: false,
+    });
+
+    modalRef.afterClose.subscribe(() => {
+      this._selectedRequestServiceDataForEmail = [];
+      this.refreshCheckedStatus(true);
     });
   }
 
   onPageChange(eventData: readonly IPrivacyData[]): void {
     this.displayedData = eventData.filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected');
-    this.refreshCheckedStatus();
+    this.refreshCheckedStatus(true);
   }
 
-  onSendEmailCheckedAll(checked: boolean): void {
+  onCheckAll(checked: boolean): void {
     this._selectedRequestServiceDataForEmail = checked ? this.displayedData.map(d => ({ requestId: d.requestId, service: d.serviceOwner })) : [];
     this.refreshCheckedStatus();
   }
@@ -162,7 +163,7 @@ export class TracingComponent {
     return this._selectedRequestServiceDataForEmail.some(d => d.requestId === data.requestId && d.service === data.serviceOwner);
   }
 
-  onSendEmailRowChecked(checked: boolean, data: IPrivacyData): void {
+  onRowCheck(checked: boolean, data: IPrivacyData): void {
     if (checked) {
       this._selectedRequestServiceDataForEmail.push({ requestId: data.requestId, service: data.serviceOwner });
     } else {
@@ -181,6 +182,10 @@ export class TracingComponent {
 
   isProcessedData(data: IPrivacyData): boolean {
     return data.currentStage === 'Completed' || data.currentStage === 'Rejected';
+  }
+
+  isAdmin(): boolean {
+    return this.role === 'admin';
   }
 
   exportDataAsCSV(): void {
@@ -205,7 +210,12 @@ export class TracingComponent {
     }
   }
 
-  private refreshCheckedStatus(): void {
+  private refreshCheckedStatus(clear = false): void {
+    if (clear) {
+      this._selectedRequestServiceDataForEmail = [];
+      this.allChecked = false,
+        this.indeterminate = false
+    }
     this.allChecked = this.displayedData.every(data => this._selectedRequestServiceDataForEmail.some(d => d.requestId === data.requestId && d.service === data.serviceOwner));
     this.indeterminate = this.displayedData.some(data => this._selectedRequestServiceDataForEmail.some(d => d.requestId === data.requestId && d.service === data.serviceOwner)) && !this.allChecked;
   }
@@ -223,19 +233,6 @@ export class TracingComponent {
         showFilter: false,
         showSort: true,
         showCol: this.displayCols.includes('requestId'),
-        sortDirections: ['ascend', 'descend', null],
-      },
-      {
-        name: 'Request Type',
-        value: 'requestType',
-        sortOrder: null,
-        sortFn: (a: IPrivacyData, b: IPrivacyData) => a.requestType.localeCompare(b.requestType),
-        listOfFilter: [],
-        filterFn: null,
-        filterMultiple: false,
-        showFilter: false,
-        showSort: true,
-        showCol: this.displayCols.includes('requestType'),
         sortDirections: ['ascend', 'descend', null],
       },
       {
@@ -262,19 +259,6 @@ export class TracingComponent {
         showFilter: this.isAdmin(),
         showSort: true,
         showCol: this.isAdmin() && this.displayCols.includes('serviceOwner'),
-        sortDirections: ['ascend', 'descend', null]
-      },
-      {
-        name: 'State',
-        value: 'state',
-        sortOrder: null,
-        sortFn: (a: IPrivacyData, b: IPrivacyData) => a.state.localeCompare(b.state),
-        listOfFilter: this.dataService.getStates().map(s => ({ text: s.label, value: s.value })),
-        filterFn: (value: string[], item: IPrivacyData) => value.some(v => item.state === v),
-        filterMultiple: true,
-        showFilter: true,
-        showSort: true,
-        showCol: this.displayCols.includes('state'),
         sortDirections: ['ascend', 'descend', null]
       },
       {
@@ -315,6 +299,32 @@ export class TracingComponent {
         showSort: true,
         showCol: this.displayCols.includes('requestCompletedDate'),
         sortDirections: ['ascend', 'descend ', null]
+      },
+      {
+        name: 'Request Type',
+        value: 'requestType',
+        sortOrder: null,
+        sortFn: (a: IPrivacyData, b: IPrivacyData) => a.requestType.localeCompare(b.requestType),
+        listOfFilter: [],
+        filterFn: null,
+        filterMultiple: false,
+        showFilter: false,
+        showSort: true,
+        showCol: this.displayCols.includes('requestType'),
+        sortDirections: ['ascend', 'descend', null],
+      },
+      {
+        name: 'State',
+        value: 'state',
+        sortOrder: null,
+        sortFn: (a: IPrivacyData, b: IPrivacyData) => a.state.localeCompare(b.state),
+        listOfFilter: this.dataService.getStates().map(s => ({ text: s.label, value: s.value })),
+        filterFn: (value: string[], item: IPrivacyData) => value.some(v => item.state === v),
+        filterMultiple: true,
+        showFilter: true,
+        showSort: true,
+        showCol: this.displayCols.includes('state'),
+        sortDirections: ['ascend', 'descend', null]
       }
     ];
 
@@ -327,9 +337,5 @@ export class TracingComponent {
       })
 
     }
-  }
-
-  private isAdmin(): boolean {
-    return this.role === 'admin';
   }
 }

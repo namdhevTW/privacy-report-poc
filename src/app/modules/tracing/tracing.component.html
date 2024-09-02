@@ -2,11 +2,14 @@
   <div class="flex mb-4 justify-between">
     <div class="flex items-center">
       <h1 class="text-2xl font-semibold mr-3">Tracing</h1>
-      <button nz-button nzType="primary" class="flex items-center" *ngIf="dataForModal.length === 0 && getRowsCheckedForSendingEmail() > 1"
-        (click)="draftSendEmail(draftEmailModal)">
-        <span nz-icon nzType="mail"></span>
-        Send {{getRowsCheckedForSendingEmail()}} emails
-      </button>
+      <a class="text-blue-500 text-sm"  *ngIf="dataForModal.length === 0 && getRowsCheckedForSendingEmail() > 0 && isAdmin()" (click)="draftSendEmail(draftEmailModal)">
+        <span nz-icon nzType="mail" class="pr-1"></span>
+        @if(getRowsCheckedForSendingEmail() > 1) {
+          Draft & send selected emails ({{getRowsCheckedForSendingEmail()}})
+        } @else {
+          Draft & send the selected email
+        }
+      </a>
     </div>
     <!-- Settings & tools -->
     <div class="flex items-center">
@@ -24,8 +27,8 @@
     (nzCurrentPageDataChange)="onPageChange($event)">
     <thead>
       <tr>
-        <th *ngIf="dataForModal.length == 0" nzShowCheckbox="true" scope="col" [(nzChecked)]="allChecked"
-          [nzIndeterminate]="indeterminate" (nzCheckedChange)="onSendEmailCheckedAll($event)" nzLabel="Select all">
+        <th *ngIf="dataForModal.length == 0 && isAdmin()" nzShowCheckbox="true" scope="col" [(nzChecked)]="allChecked"
+          [nzIndeterminate]="indeterminate" (nzCheckedChange)="onCheckAll($event)" nzLabel="Select all">
         </th>
         @for (col of colDefs; track col) {
         @if (col.name === 'requestCreatedDate') {
@@ -43,33 +46,44 @@
           {{col.name}}</th>
         }
         }
-        <th nzRight scope="col" *ngIf="dataForModal.length==0">Action</th>
+        <!-- <th nzRight scope="col" *ngIf="dataForModal.length==0">Action</th> -->
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let privData of tracingTable.data">
-        <td *ngIf="dataForModal.length == 0" nzShowCheckbox="true" [nzDisabled]="isProcessedData(privData)"
+        <td *ngIf="dataForModal.length == 0 && isAdmin()" nzShowCheckbox="true" [nzDisabled]="isProcessedData(privData)"
           [nzChecked]="checkReqIdServiceInEmailSendData(privData)"
-          (nzCheckedChange)="onSendEmailRowChecked($event, privData)"></td>
-        <td *ngIf="isColumnVisible('requestId')">{{ privData.requestId }}</td>
-        <td *ngIf="isColumnVisible('requestType')">{{ privData.requestType }}</td>
-        <td *ngIf="isColumnVisible('currentStage')">{{ privData.currentStage }}</td>
-        <td *ngIf="isColumnVisible('serviceOwner')"> {{privData.serviceOwner}}</td>
-        <td *ngIf="isColumnVisible('state')">{{displayFullState(privData.state)}}</td>
-        <td *ngIf="isColumnVisible('slaDays')">{{privData.slaDays}}</td>
-        <td *ngIf="isColumnVisible('requestCreatedDate')">{{ privData.requestCreatedDate | date: 'dd-MMM-yyyy' }}</td>
-        <td *ngIf="isColumnVisible('requestCompletedDate')">{{privData.requestCompletedDate | date: 'dd-MMM-yyyy' }}
-        </td>
-        <td *ngIf="dataForModal.length == 0" nzAlign="center" nzRight>
+          (nzCheckedChange)="onRowCheck($event, privData)"></td>
+        <td *ngIf="isColumnVisible('requestId')" nzAlign="center">{{ privData.requestId }}</td>
+        @if (isColumnVisible('currentStage')) {
+          @switch(privData.currentStage) {
+            @case('Completed') {
+              <td *ngIf="isColumnVisible('currentStage')" nzAlign="center"><nz-tag nzColor="#10B981" class="border rounded">{{ privData.currentStage }}</nz-tag></td>
+            }
+            @case('Rejected') {
+              <td *ngIf="isColumnVisible('currentStage')" nzAlign="center"><nz-tag nzColor="#64748B" class="border rounded">{{ privData.currentStage }}</nz-tag></td>
+            }
+            @default {
+              <td *ngIf="isColumnVisible('currentStage')" nzAlign="center"><nz-tag nzColor="#f87171" class="border rounded">{{ privData.currentStage }}</nz-tag></td>
+            }
+          }
+        }
+        <td *ngIf="isColumnVisible('serviceOwner')" nzAlign="center"> {{privData.serviceOwner}}</td>
+        <td *ngIf="isColumnVisible('slaDays')" nzAlign="center">{{privData.slaDays}}</td>
+        <td *ngIf="isColumnVisible('requestCreatedDate')" nzAlign="center">{{ privData.requestCreatedDate | date: 'dd-MMM-yyyy' }}</td>
+        <td *ngIf="isColumnVisible('requestCompletedDate')" nzAlign="center">{{privData.requestCompletedDate | date: 'dd-MMM-yyyy' }}</td>
+        <td *ngIf="isColumnVisible('requestType')" nzAlign="center">{{ privData.requestType }}</td>
+        <td *ngIf="isColumnVisible('state')" nzAlign="center">{{displayFullState(privData.state)}}</td>
+        <!-- <td *ngIf="dataForModal.length == 0" nzAlign="center" nzRight>
           <a *ngIf="!isProcessedData(privData)" nz-tooltip
             [nzTooltipTitle]="getServiceEmailTooltip(privData.serviceOwner)" (click)="openSendEmailModal(privData)">
             <span nz-icon nzType="mail" nzTheme="outline" class="cursor-pointer"></span>
           </a>
-        </td>
+        </td> -->
       </tr>
     </tbody>
   </nz-table>
 </div>
 <ng-template #draftEmailModal>
-  <app-draft-email [serviceEmailInput]="serviceEmailInput"></app-draft-email>
+  <draft-email [serviceEmailInput]="serviceEmailInput"></draft-email>
 </ng-template>

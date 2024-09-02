@@ -13,6 +13,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { IconDefinition } from '@ant-design/icons-angular';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { SharedModule } from '@app/shared/shared.module';
+import { NzTagModule } from 'ng-zorro-antd/tag';
 
 const icons: IconDefinition[] = [CloseOutline, ExportOutline];
 
@@ -30,6 +31,7 @@ const icons: IconDefinition[] = [CloseOutline, ExportOutline];
     NzTableModule,
     NzToolTipModule,
     NzButtonModule,
+    NzTagModule,
     SharedModule,
     NzIconModule.forChild(icons),
     NzSelectModule,
