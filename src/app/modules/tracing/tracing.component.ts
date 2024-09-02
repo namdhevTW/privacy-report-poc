@@ -1,10 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, TemplateRef } from '@angular/core';
 import { IPrivacyData } from '@app/core/models/interfaces/privacy-data';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { DataService } from '@app/core/services/data/data.service';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
 import { exportCSVFromJSON } from 'export-json-to-csv';
 import { IServiceMapping } from '@app/core/models/interfaces/service-mapping';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { IServiceNotificationEmailDraftInput } from '@app/core/models/interfaces/service-notification-email-draft-input';
 
 @Component({
   selector: 'app-tracing',
@@ -18,6 +20,7 @@ export class TracingComponent {
 
   allChecked = false;
   indeterminate = false;
+  serviceEmailInput: IServiceNotificationEmailDraftInput[] = [];
   tableData: IPrivacyData[] = [];
   displayedData: readonly IPrivacyData[] = [];
 
@@ -45,6 +48,7 @@ export class TracingComponent {
   constructor(
     private dataService: DataService,
     private authService: AuthService,
+    private modalService: NzModalService,
   ) {
     this.stateOptions = this.dataService.getStates();
     this._availableServices = this.dataService.serviceMapping;
@@ -104,8 +108,40 @@ export class TracingComponent {
     });
   }
 
-  confirmSendEmail(): void {
-    //TODO: Implement this method
+  draftSendEmail(templateRef: TemplateRef<{}>): void {
+    this._selectedRequestServiceDataForEmail.forEach(d => {
+      this.serviceEmailInput.push({
+        serviceLabel: this._availableServices.find(s => s.value === d.service)?.name ?? '',
+        emailAddress: this._availableServices.find(s => s.value === d.service)?.emails ?? '',
+        requestDetails: this.tableData
+          .filter(td => td.requestId === d.requestId)
+          .map(td => ({ requestId: td.requestId, currentStage: td.currentStage, requestDate: td.requestCreatedDate }))
+      });
+    });
+
+    // flatten the array of requestDetails in serviceEmailInput and keep unique requestIds
+    this.serviceEmailInput = this.serviceEmailInput.reduce((acc: IServiceNotificationEmailDraftInput[], curr) => {
+      const existingService = acc.find(s => s.serviceLabel === curr.serviceLabel);
+      if (existingService) {
+        existingService.requestDetails =
+          existingService.requestDetails.concat(curr.requestDetails.filter(rd => !existingService.requestDetails.some(erd => erd.requestId === rd.requestId)));
+      } else {
+        acc.push(curr);
+      }
+      return acc;
+    }, []);
+
+    this.modalService.create({
+      nzTitle: 'Draft service notification email',
+      nzContent: templateRef,
+      nzWidth: '60%',
+      nzOnOk: () => {
+        // this._selectedRequestServiceDataForEmail = [];
+      },
+      nzOnCancel: () => {
+        // this._selectedRequestServiceDataForEmail = [];
+      }
+    });
   }
 
   onPageChange(eventData: readonly IPrivacyData[]): void {

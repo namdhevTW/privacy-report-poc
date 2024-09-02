@@ -5,7 +5,6 @@ import { DashboardService, SeriesNames, SLAChartLabels } from '@core/services/da
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { NzDatePickerComponent } from 'ng-zorro-antd/date-picker';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -60,7 +59,6 @@ export class DashboardComponent {
     private dashboardService: DashboardService,
     private authService: AuthService,
     private modalService: NzModalService,
-    private router: Router
   ) {
     this.states = this.dashboardService.fetchStateOptions();
     this.states.unshift({ value: 'all', label: 'All' });
@@ -160,12 +158,12 @@ export class DashboardComponent {
     this._requestCreatedDateRangeControl = control;
   }
 
-  redirectToTracingPage(): void {
-    this.router.navigate(['/tracing']);
-  }
-
   onStatsClickEvent(statClicked: string, templateRef: TemplateRef<{}>): void {
     switch (statClicked) {
+      case 'All':
+        this.modalData = this.privacyData;
+        this.openModal('All Requests', templateRef);
+        break;
       case 'Pending':
         this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d));
         this.openModal('Pending Requests', templateRef);
@@ -183,6 +181,7 @@ export class DashboardComponent {
 
   onChartClickEvent(event: ECElementEvent, templateRef: TemplateRef<{}>): void {
     this.modalData = this.privacyData;
+    let eventData = event.data as string[];
     switch (event.seriesName) {
       case SeriesNames.PendingSLADistribution:
         this.setModalDataBasedOnSLA(event);
@@ -198,8 +197,7 @@ export class DashboardComponent {
         this.openModal(`Data for ${SeriesNames.PendingRequestsByCurrentStage}`, templateRef);
         break;
       case SeriesNames.PendingRequestsByServiceOwnerAndCurrentStage:
-        let eventData = event.data as string[];
-        eventData[1] = this.services.find(s => s.label === eventData[1])?.value || eventData[1];
+        eventData[1] = this.services.find(s => s.label === eventData[1])?.value ?? eventData[1];
         if (Number(eventData[2]) === 0) {
           break;
         }

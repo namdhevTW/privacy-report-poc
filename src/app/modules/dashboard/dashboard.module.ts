@@ -4,7 +4,6 @@ import { DashboardComponent } from './dashboard.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxEchartsModule } from 'ngx-echarts';
-import { SharedModule } from '@app/shared/shared.module';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
 import { CloseOutline } from '@ant-design/icons-angular/icons';
@@ -26,7 +25,6 @@ import { TracingModule } from "@modules/tracing/tracing.module";
   imports: [CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    SharedModule,
     NzSegmentedModule,
     NzEmptyModule,
     NzModalModule,

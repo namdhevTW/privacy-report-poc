@@ -3,7 +3,7 @@
     <div class="flex items-center">
       <h1 class="text-2xl font-semibold mr-3">Tracing</h1>
       <button nz-button nzType="primary" class="flex items-center" *ngIf="dataForModal.length === 0 && getRowsCheckedForSendingEmail() > 1"
-        (click)="confirmSendEmail()">
+        (click)="draftSendEmail(draftEmailModal)">
         <span nz-icon nzType="mail"></span>
         Send {{getRowsCheckedForSendingEmail()}} emails
       </button>
@@ -70,3 +70,6 @@
     </tbody>
   </nz-table>
 </div>
+<ng-template #draftEmailModal>
+  <app-draft-email [serviceEmailInput]="serviceEmailInput"></app-draft-email>
+</ng-template>

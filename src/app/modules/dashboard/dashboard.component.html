@@ -7,8 +7,6 @@
   <div class="col-span-5 ml-auto">
     <!-- Consent mode -->
     <span class="flex items-center">
-      <span class="text-lg pr-2">Consent mode: </span>
-      <nz-switch [(ngModel)]="consentModeOn" (ngModelChange)="applyFilter()"></nz-switch>
 
     <!--State options-->
     <span class="text-lg pr-2 pl-4">State: </span>
@@ -21,12 +19,6 @@
     <span class="text-lg pl-4 pr-2">Service: </span>
     <nz-select [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedService" (ngModelChange)="changeSelectedService($event); applyFilter()" nzSize="large">
       <nz-option *ngFor="let service of services" [nzValue]="service.value" [nzLabel]="service.label"></nz-option>
-    </nz-select>
-
-    <!-- Request type options-->
-    <span class="text-lg pl-4 pr-2">Request Type: </span>
-    <nz-select [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedRequestType" (ngModelChange)="applyFilter()" nzSize="large">
-      <nz-option *ngFor="let requestType of requestTypes" [nzValue]="requestType" [nzLabel]="requestType"></nz-option>
     </nz-select>
     }
 
@@ -49,7 +41,7 @@
 @switch (selectedTab) {
   @case(0) {
     <!--#region: Overall metrics for admin-->
-    <div class="dashboard-content-wrapper  bg-gray-50">
+    <div class="dashboard-content-wrapper bg-gray-50">
       @if(privacyData && privacyData.length > 0) {
       <div class="grid grid-cols-6 gap-2 mb-2">
         <div class="col-span-6 p-4">
@@ -61,7 +53,7 @@
                     <div class="text-xl font-bold">Request stats</div>
                     <div class="text-[1rem] text-slate-500">Overall stats for the applied filter</div>
                     <div class="grid grid-cols-4 py-10 gap-4 mt-4">
-                      <div class="flex flex-col items-center bg-blue-500 text-white border rounded p-2 py-5 cursor-pointer" (click)="redirectToTracingPage()" (keypress)="redirectToTracingPage()">
+                      <div class="flex flex-col items-center bg-blue-500 text-white border rounded p-2 py-5 cursor-pointer" (click)="onStatsClickEvent('All', tableModal)" (keypress)="onStatsClickEvent('All', tableModal)">
                         <div class="text-3xl font-bold ">{{requestStats.all}}</div>
                         <div class="text-lg">All</div>
                       </div>
