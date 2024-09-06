@@ -48,7 +48,7 @@ export class DashboardService {
     return totals;
   }
 
-  fetchStateOptions(): { value: string, label: string }[] {
+  fetchStateOptions(): string[] {
     return this.dataService.getStates()
   }
 
@@ -67,7 +67,7 @@ export class DashboardService {
       filteredData = this.filterDataByServiceOwner(filteredData, selectedServiceOwner);
     }
 
-    if (selectedState && selectedState !== 'all') {
+    if (selectedState && selectedState !== 'All') {
       filteredData = filteredData.filter(d => d.state === selectedState);
     }
 
@@ -173,8 +173,12 @@ export class DashboardService {
         textStyle: this.getFontBasedStyle(14),
       },
       grid: {
-        height: '62.5%',
-        top: '29%',
+        // height: '62.5%',
+        // top: '30%',
+        // left: 'center',
+        bottom: '8%',
+        left: '15%',
+        height: '65%',
       },
       xAxis: {
         type: 'category',
@@ -224,8 +228,8 @@ export class DashboardService {
   fetchSLAComplianceChartOptions(stats: IPrivacyRequestStats): EChartsOption {
     return {
       title: {
-        text: "SLA distribution",
-        subtext: "SLA distribution of pending requests",
+        text: "SLA status",
+        subtext: "SLA status of pending requests",
         textStyle: this.getFontBasedStyle(20),
         subtextStyle: this.getFontBasedStyle(16),
         left: "center",
@@ -242,13 +246,13 @@ export class DashboardService {
       },
       series: [
         {
-          name: SeriesNames.PendingSLADistribution,
+          name: SeriesNames.PendingRequestsSLAStatus,
           type: 'pie',
-          height: '140%',
+          height: '135%',
           itemStyle: {
             borderRadius: 1
           },
-          radius: ['40%', '70%'],
+          radius: ['60%', '80%'],
           center: ['50%', '70%'],
           startAngle: 180,
           endAngle: 360,
@@ -303,11 +307,12 @@ export class DashboardService {
         shadowColor: 'rgba(0, 0, 0, 0.5)',
       },
       legend: {
-        orient: 'vertical',
+        orient: 'horizontal',
         bottom: 0,
         left: 0,
         data: this.getUniquePendingRequestTypesWithCount(data).map(d => d.name),
         textStyle: this.getFontBasedStyle(14),
+        itemWidth: 10,
       },
       series: [
         {
@@ -318,7 +323,7 @@ export class DashboardService {
             borderRadius: 15,
             borderWidth: 0.5
           },
-          color: ['#10b981', '#facc15', '#f87171', '#3b82f6', '#64748b'],
+          color: ['#10b981', '#facc15', '#f87171', '#3b82f6', '#64748b', '#818cf8', '#a78bfa'],
           radius: ['35%', '45%'],
           // color: ['#047857', '#facc15', '#dc2626'],
           label: {
@@ -335,84 +340,6 @@ export class DashboardService {
       animationType: 'scale',
       animationEasing: 'sinusoidalIn',
       animationDelay: () => Math.random() * 200,
-    };
-  }
-
-  fetchServiceOwnerAndCurrentStageMapChartOption(data: IPrivacyData[]): EChartsOption {
-    return {
-      title: {
-        text: 'Pending current stages per service owner',
-        subtext: `Pending requests by service owners based on current stages`,
-        textStyle: this.getFontBasedStyle(20),
-        subtextStyle: {
-          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-          fontSize: 16,
-          align: 'center',
-          width: '90%',
-        },
-        left: 'center',
-      },
-      tooltip: {
-        position: 'top',
-        textStyle: this.getFontBasedStyle(14),
-      },
-      grid: {
-        height: '60%',
-        top: 'center',
-        containLabel: true,
-      },
-      xAxis: {
-        type: 'category',
-        data: this.fetchUniqueCurrentStages().filter(d => d !== 'Completed' && d !== 'Rejected'),
-        splitArea: {
-          show: true,
-        },
-        axisLabel: this.getFontBasedStyle(12),
-      },
-      yAxis: {
-        type: 'category',
-        data: this.serviceMapping.map(d => d.name),
-        splitArea: {
-          show: true,
-        },
-
-        axisLabel: this.getFontBasedStyle(12, 'right')
-      },
-      visualMap: {
-        min: 0,
-        max: 10,
-        showLabel: true,
-        borderMiterLimit: 1,
-        calculable: true,
-        orient: 'vertical',
-        right: '5%',
-        bottom: 'center',
-        textStyle: this.getFontBasedStyle(12),
-
-        inRange: {
-          color: ['#10b981', '#facc15', '#f87171'],
-        },
-      },
-      series: [
-        {
-          name: SeriesNames.PendingRequestsByServiceOwnerAndCurrentStage,
-          type: 'heatmap',
-          data: this.getUniqueServiceOwnersWithCurrentStagesAndPendingRequestCount(data).map(d => [d[0], d[1], d[2]]),
-          emphasis: {
-            itemStyle: {
-              shadowBlur: 10,
-              shadowColor: 'rgba(0, 0, 0, 0.5)',
-            },
-          },
-          label: {
-            show: true,
-            position: 'inside',
-            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: 14,
-            fontWeight: 'bold',
-          },
-        },
-      ],
     };
   }
 
@@ -460,7 +387,7 @@ export class DashboardService {
       },
       xAxis: {
         type: 'category',
-        data: Object.keys(currentStageCounts).map(key => key.replace(/ /g, '\n')),
+        data: Object.keys(currentStageCounts).map(key => key.replace(/-/g, '\n')),
         axisTick: {
           alignWithLabel: true,
         },
@@ -496,7 +423,85 @@ export class DashboardService {
             },
           },
         ],
+    };
+  }
 
+
+  fetchServiceOwnerAndCurrentStageMapChartOption(data: IPrivacyData[]): EChartsOption {
+    return {
+      title: {
+        text: 'Pending current stages per service owner',
+        subtext: `Pending requests by service owners based on current stages`,
+        textStyle: this.getFontBasedStyle(20),
+        subtextStyle: {
+          fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+          fontSize: 16,
+          align: 'center',
+          width: '90%',
+        },
+        left: 'center',
+      },
+      tooltip: {
+        position: 'top',
+        textStyle: this.getFontBasedStyle(14),
+      },
+      grid: {
+        height: '70%',
+        top: 'center',
+        containLabel: true,
+      },
+      xAxis: {
+        type: 'category',
+        data: this.fetchUniqueCurrentStages().filter(d => d !== 'Completed' && d !== 'Rejected'),
+        splitArea: {
+          show: true,
+        },
+        axisLabel: this.getFontBasedStyle(12),
+      },
+      yAxis: {
+        type: 'category',
+        data: this.serviceMapping.map(d => d.name),
+        splitArea: {
+          show: true,
+        },
+
+        axisLabel: this.getFontBasedStyle(12, 'right')
+      },
+      visualMap: {
+        min: 0,
+        max: 15,
+        showLabel: true,
+        borderMiterLimit: 1,
+        calculable: true,
+        orient: 'vertical',
+        right: '5%',
+        bottom: 'center',
+        textStyle: this.getFontBasedStyle(12),
+
+        inRange: {
+          color: ['#047857', '#facc15', '#b91c1c'],
+        },
+      },
+      series: [
+        {
+          name: SeriesNames.PendingRequestsByServiceOwnerAndCurrentStage,
+          type: 'heatmap',
+          data: this.getUniqueServiceOwnersWithCurrentStagesAndPendingRequestCount(data).map(d => [d[0], d[1], d[2]]),
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)',
+            },
+          },
+          label: {
+            show: true,
+            position: 'inside',
+            fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: 14,
+            fontWeight: 'bold',
+          },
+        },
+      ],
     };
   }
 
@@ -523,6 +528,10 @@ export class DashboardService {
   private isOptOutRequest(data: IPrivacyData): boolean {
     return data.requestType === this.saleShareOptOutRequestTypeText || data.requestType === this.rightToLimitUseTypeText;
   }
+
+  private isOptOutStage(data: IPrivacyData): boolean {
+    return data.currentStage.includes('OPT-OUT');
+  }
 }
 
 export enum EChartType {
@@ -533,7 +542,7 @@ export enum EChartType {
 
 export enum SeriesNames {
   PendingByServiceOwner = 'Pending requests distribution by Service Owner',
-  PendingSLADistribution = 'Pending SLA distribution',
+  PendingRequestsSLAStatus = 'Pending requests - SLA status',
   PendingRequestTypeDistribution = 'Pending requests - request type distribution',
   PendingRequestsByCurrentStage = 'Pending requests by current stage',
   PendingRequestsByServiceOwnerAndCurrentStage = 'Pending requests by service owner and current stage',

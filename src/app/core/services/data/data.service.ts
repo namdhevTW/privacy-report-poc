@@ -13,15 +13,8 @@ export class DataService {
   private _data: IPrivacyData[] = [];
   constructor(private http: HttpClient) { }
 
-  getStates(): { value: string, label: string }[] {
-    return [
-      { value: "CA", label: "California" },
-      { value: "CO", label: "Colarado" },
-      { value: "CT", label: "Connecticut" },
-      { value: "FL", label: "Florida" },
-      { value: "MO", label: "Montana" },
-      { value: "NE", label: "Nevada" },
-    ];
+  getStates(): string[] {
+    return this._data.map(data => data.state).filter((value, index, self) => self.indexOf(value) === index).sort((a, b) => a.localeCompare(b));
   }
 
   getServices(): Observable<IServiceMapping[]> {

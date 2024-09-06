@@ -1,7 +1,7 @@
 <div [ngClass]="dataForModal && dataForModal.length>0 ? 'p-0' : 'p-6' ">
   <div class="flex mb-4 justify-between">
     <div class="flex items-center">
-      <h1 class="text-2xl font-semibold mr-3">Tracing</h1>
+      <h1 class="text-2xl font-semibold mr-3">Request details</h1>
       <a class="text-blue-500 text-sm"  *ngIf="dataForModal.length === 0 && getRowsCheckedForSendingEmail() > 0 && isAdmin()" (click)="draftSendEmail(draftEmailModal)">
         <span nz-icon nzType="mail" class="pr-1"></span>
         @if(getRowsCheckedForSendingEmail() > 1) {
@@ -73,7 +73,7 @@
         <td *ngIf="isColumnVisible('requestCreatedDate')" nzAlign="center">{{ privData.requestCreatedDate | date: 'dd-MMM-yyyy' }}</td>
         <td *ngIf="isColumnVisible('requestCompletedDate')" nzAlign="center">{{privData.requestCompletedDate | date: 'dd-MMM-yyyy' }}</td>
         <td *ngIf="isColumnVisible('requestType')" nzAlign="center">{{ privData.requestType }}</td>
-        <td *ngIf="isColumnVisible('state')" nzAlign="center">{{displayFullState(privData.state)}}</td>
+        <td *ngIf="isColumnVisible('state')" nzAlign="center">{{privData.state}}</td>
         <!-- <td *ngIf="dataForModal.length == 0" nzAlign="center" nzRight>
           <a *ngIf="!isProcessedData(privData)" nz-tooltip
             [nzTooltipTitle]="getServiceEmailTooltip(privData.serviceOwner)" (click)="openSendEmailModal(privData)">

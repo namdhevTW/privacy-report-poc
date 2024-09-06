@@ -15,7 +15,7 @@ import { IServiceNotificationEmailDraftInput } from '@app/core/models/interfaces
 })
 export class TracingComponent {
   @Input() dataForModal: IPrivacyData[] = [];
-  @Input() displayCols: string[] = ['requestId', 'requestType', 'serviceOwner', 'currentStage', 'state', 'slaDays', 'requestCreatedDate', 'requestCompletedDate'];
+  @Input() displayCols: string[] = ['requestId', 'requestType', 'serviceOwner', 'currentStage', 'state', 'slaDays', 'requestCreatedDate'];
   @Input() pageSizeLimit: number = 10;
 
   allChecked = false;
@@ -38,7 +38,7 @@ export class TracingComponent {
     sortDirections: NzTableSortOrder[];
   }[] = [];
 
-  stateOptions: { value: string, label: string }[] = [];
+  stateOptions: string[] = [];
 
   private role: string = 'admin';
   private serviceOwner: string = '';
@@ -71,10 +71,6 @@ export class TracingComponent {
 
   ngOnChanges(): void {
     this.loadTableData();
-  }
-
-  displayFullState(state: string): string {
-    return this.stateOptions.find(s => s.value === state)?.label ?? '';
   }
 
   loadPrivacyTableData() {
@@ -318,7 +314,7 @@ export class TracingComponent {
         value: 'state',
         sortOrder: null,
         sortFn: (a: IPrivacyData, b: IPrivacyData) => a.state.localeCompare(b.state),
-        listOfFilter: this.dataService.getStates().map(s => ({ text: s.label, value: s.value })),
+        listOfFilter: this.dataService.getStates().map(s => ({ text: s, value: s })),
         filterFn: (value: string[], item: IPrivacyData) => value.some(v => item.state === v),
         filterMultiple: true,
         showFilter: true,

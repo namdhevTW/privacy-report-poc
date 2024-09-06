@@ -26,31 +26,32 @@ export class DashboardComponent {
   };
 
   services: { value: string, label: string }[] = [];
-  states: { value: string, label: string }[] = [];
+  states: string[] = [];
   requestTypes: string[] = [];
-  selectedState: string = 'all';
+  selectedState: string = 'All';
   selectedService: string = 'all';
   selectedRequestType: string = 'All';
   privacyData: IPrivacyData[] = [];
   modalData: IPrivacyData[] = [];
   modalCols: string[] = ['requestId', 'requestType', 'currentStage', 'requestCreatedDate', 'slaDays'];
+  modalPageSize: number = 5;
   consentModeOn: boolean = false;
 
-  selectedStartDate!: Date;
-  selectedEndDate!: Date;
+  selectedStartDate: Date = new Date(new Date().setDate(new Date().getDate() - 90));
+  selectedEndDate: Date = new Date();
   presetQuickDateRanges = {
     'Last 7 Days': [new Date(new Date().setDate(new Date().getDate() - 7)), new Date()],
     'Last 30 Days': [new Date(new Date().setDate(new Date().getDate() - 30)), new Date()],
-    'Last 3 Months': [new Date(new Date().setDate(new Date().getDate() - 90)), new Date()],
+    'Last 90 Days': [new Date(new Date().setDate(new Date().getDate() - 90)), new Date()],
     'Last 6 Months': [new Date(new Date().setDate(new Date().getDate() - 180)), new Date()],
     'Last 1 Year': [new Date(new Date().setDate(new Date().getDate() - 365)), new Date()],
 
   };
 
   pendingRequestsByServiceOwnerChartOption: EChartsOption = {};
-  slaChartOption: EChartsOption = {};
+  slaStatusChartOption: EChartsOption = {};
   requestTypeChartOption: EChartsOption = {};
-  serviceOwnerChartOption: EChartsOption = {};
+  serviceOwnerByCurrentStageChartOption: EChartsOption = {};
   pendingRequestsByCurrentStageChartOption: EChartsOption = {};
 
   _requestCreatedDateRangeControl: any;
@@ -60,9 +61,6 @@ export class DashboardComponent {
     private authService: AuthService,
     private modalService: NzModalService,
   ) {
-    this.states = this.dashboardService.fetchStateOptions();
-    this.states.unshift({ value: 'all', label: 'All' });
-
     this.services = this.dashboardService.serviceMapping?.map(service => ({ value: service.value, label: service.name })) || [];
     if (this.services.length > 0) {
       this.services.unshift({ value: 'all', label: 'All' });
@@ -72,6 +70,9 @@ export class DashboardComponent {
   ngOnInit(): void {
     this.dashboardService.getDashboardData().subscribe((data) => {
       this.privacyData = data;
+
+      this.states = this.dashboardService.fetchStateOptions();
+      this.states.unshift('All');
 
       this.requestTypes = this.dashboardService.fetchUniqueRequestTypes();
       this.requestTypes.unshift('All');
@@ -87,8 +88,7 @@ export class DashboardComponent {
             this.applyFilter();
           }
           this.updateRequestStats(this.privacyData);
-          this.setChartOptions();
-          this.setDefaultRequestCreatedDateRange();
+          this.applyFilter();
         });
       }
     });
@@ -159,23 +159,25 @@ export class DashboardComponent {
   }
 
   onStatsClickEvent(statClicked: string, templateRef: TemplateRef<{}>): void {
-    switch (statClicked) {
-      case 'All':
-        this.modalData = this.privacyData;
-        this.openModal('All Requests', templateRef);
-        break;
-      case 'Pending':
-        this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d));
+    this.modalData = this.privacyData;
+    if (statClicked === 'All' && this.modalData.length > 0) {
+      this.openModal('All Requests', templateRef);
+    } else if (statClicked === 'Pending') {
+      this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d));
+      this.modalPageSize = 10;
+      if (this.modalData.length > 0) {
         this.openModal('Pending Requests', templateRef);
-        break;
-      case 'Completed':
-        this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestCompleted(d));
+      }
+    } else if (statClicked === 'Completed') {
+      this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestCompleted(d));
+      if (this.modalData.length > 0) {
         this.openModal('Completed Requests', templateRef);
-        break;
-      case 'Rejected':
-        this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestRejected(d));
+      }
+    } else if (statClicked === 'Rejected') {
+      this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestRejected(d));
+      if (this.modalData.length > 0) {
         this.openModal('Rejected Requests', templateRef);
-        break;
+      }
     }
   }
 
@@ -183,13 +185,13 @@ export class DashboardComponent {
     this.modalData = this.privacyData;
     let eventData = event.data as string[];
     switch (event.seriesName) {
-      case SeriesNames.PendingSLADistribution:
+      case SeriesNames.PendingRequestsSLAStatus:
         this.setModalDataBasedOnSLA(event);
         this.modalCols = ['requestId', 'requestType', 'currentStage', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for ${SeriesNames.PendingSLADistribution}`, templateRef);
+        this.openModal(`Data for ${SeriesNames.PendingRequestsSLAStatus}`, templateRef);
         break;
       case SeriesNames.PendingRequestsByCurrentStage:
-        this.modalData = this.privacyData.filter(d => d.currentStage === event.name.replace(/\n/g, ' '));
+        this.modalData = this.privacyData.filter(d => d.currentStage === event.name.replace(/\n/g, '-'));
         this.modalCols = ['requestId', 'currentStage', 'requestCreatedDate', 'slaDays'];
         if (this.role == 'admin') {
           this.modalCols = [...this.modalCols, 'serviceOwner'];
@@ -228,19 +230,19 @@ export class DashboardComponent {
   }
 
   removeFilter(): void {
-    this.selectedState = 'all';
+    this.selectedState = 'All';
     this.selectedRequestType = 'All';
     this.consentModeOn = false;
     if (this.role === 'admin') {
       this.selectedService = 'all';
     }
-    if (this._requestCreatedDateRangeControl?.rangePickerInputs?.first) {
-      this.clearRequestCreatedDateInputs();
-    }
-    this.setDefaultRequestCreatedDateRange();
+    // if (this._requestCreatedDateRangeControl?.rangePickerInputs?.first) {
+    //   this.clearRequestCreatedDateInputs();
+    // }
     this.privacyData = this.dashboardService.removeDashboardFilters(this.selectedService);
+    this.setDefaultRequestCreatedDateRange();
+    this.applyFilter();
     this.updateRequestStats(this.privacyData);
-    this.setChartOptions();
   }
 
   private clearRequestCreatedDateInputs(): void {
@@ -249,15 +251,15 @@ export class DashboardComponent {
   }
 
   private setChartOptions(): void {
-    this.slaChartOption = this.dashboardService.fetchSLAComplianceChartOptions(this.requestStats);
+    this.slaStatusChartOption = this.dashboardService.fetchSLAComplianceChartOptions(this.requestStats);
     this.requestTypeChartOption = this.dashboardService.fetchRequestTypePieChartOptions(this.privacyData);
-    this.serviceOwnerChartOption = this.dashboardService.fetchServiceOwnerAndCurrentStageMapChartOption(this.privacyData);
+    this.serviceOwnerByCurrentStageChartOption = this.dashboardService.fetchServiceOwnerAndCurrentStageMapChartOption(this.privacyData);
     this.pendingRequestsByCurrentStageChartOption = this.dashboardService.fetchPendingRequestsByCurrentStageBarChartOption(this.privacyData);
     this.pendingRequestsByServiceOwnerChartOption = this.dashboardService.fetchPendingRequestsDistributionByServiceOwner(this.privacyData, this.selectedService);
   }
 
   private setDefaultRequestCreatedDateRange(): void {
-    this.selectedStartDate = new Date(2018, 1, 1);
+    this.selectedStartDate = this.presetQuickDateRanges['Last 90 Days'][0];
     this.selectedEndDate = new Date();
   }
 

@@ -1,31 +1,35 @@
 <div class="grid grid-cols-6 gap-8 items-center p-4 bg-gray-50 mt-3">
-  <div class="col-span-1 mr-auto">
+  <!-- <div class="col-span-1 mr-auto">
     <nz-segmented [nzOptions]="['Pending', 'Completed']" [(ngModel)]="selectedTab" (ngModelChange)="changeSelectedTab($event)" nzSize="large"></nz-segmented>
-  </div>
+  </div> -->
 
   <!--#region: filters-->
-  <div class="col-span-5 ml-auto">
+  <div class="col-span-6 ml-auto">
     <!-- Consent mode -->
     <span class="flex items-center">
 
     <!--State options-->
     <span class="text-lg pr-2 pl-4">State: </span>
-    <nz-select [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedState" (ngModelChange)="changeSelectedState($event); applyFilter()" nzSize="large">
-      <nz-option *ngFor="let state of states" [nzValue]="state.value" [nzLabel]="state.label"></nz-option>
+    <nz-select [nzOptionOverflowSize]="states.length" [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedState" (ngModelChange)="applyFilter()" nzSize="large">
+      @for (state of states; track state) {
+      <nz-option [nzValue]="state" [nzLabel]="state"></nz-option>
+      }
     </nz-select>
 
     <!-- Service Dropdown -->
     @if(role === 'admin') {
     <span class="text-lg pl-4 pr-2">Service: </span>
-    <nz-select [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedService" (ngModelChange)="changeSelectedService($event); applyFilter()" nzSize="large">
-      <nz-option *ngFor="let service of services" [nzValue]="service.value" [nzLabel]="service.label"></nz-option>
+    <nz-select [nzOptionOverflowSize]="services.length" [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedService" (ngModelChange)="changeSelectedService($event); applyFilter()" nzSize="large">
+      @for (service of services; track service) {
+      <nz-option [nzValue]="service.value" [nzLabel]="service.label"></nz-option>
+      }
     </nz-select>
     }
 
 
     <!-- Request creation range picker -->
     <span class="text-lg pl-4 pr-2">Created Date: </span>
-    <nz-range-picker #requestCreatedDateRangePicker [nzRanges]="presetQuickDateRanges" ngModel
+    <nz-range-picker #requestCreatedDateRangePicker [nzRanges]="presetQuickDateRanges" [ngModel]="[selectedStartDate, selectedEndDate]"
       (ngModelChange)="changeSelectedRequestCreatedDate($event); storeRequestCreatedDateRangeControl(requestCreatedDateRangePicker)" [nzFormat]="'dd-MMM-yyyy'" nzSize="large" [nzDisabledDate]="disabledDates"></nz-range-picker>
     <span class="pr-2"></span>
 
@@ -45,52 +49,43 @@
       @if(privacyData && privacyData.length > 0) {
       <div class="grid grid-cols-6 gap-2 mb-2">
         <div class="col-span-6 p-4">
-          <div class="card">
-            <div class="card-body">
-              <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500">
-                <div class="col-span-2 py-2">
-                  <div class="flex flex-col items-center justify-center h-full">
-                    <div class="text-xl font-bold">Request stats</div>
-                    <div class="text-[1rem] text-slate-500">Overall stats for the applied filter</div>
-                    <div class="grid grid-cols-4 py-10 gap-4 mt-4">
-                      <div class="flex flex-col items-center bg-blue-500 text-white border rounded p-2 py-5 cursor-pointer" (click)="onStatsClickEvent('All', tableModal)" (keypress)="onStatsClickEvent('All', tableModal)">
-                        <div class="text-3xl font-bold ">{{requestStats.all}}</div>
-                        <div class="text-lg">All</div>
-                      </div>
-                      <div class="flex flex-col items-center bg-red-400 text-white border rounded p-2 py-5 cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">
-                        <div class="text-3xl font-bold">{{requestStats.pending}}</div>
-                        <div class="text-lg">Pending</div>
-                      </div>
-                      <div class="flex flex-col items-center bg-emerald-500 text-white rounded p-2 py-5 cursor-pointer" (click)="onStatsClickEvent('Completed', tableModal)" (keypress)="onStatsClickEvent('Completed', tableModal)">
-                        <div class="text-3xl font-bold">{{requestStats.completed}}</div>
-                        <div class="text-lg">Completed</div>
-                      </div>
-                      <div class="flex flex-col flex-1 items-center bg-slate-500 text-white rounded p-2 py-5 cursor-pointer" (click)="onStatsClickEvent('Rejected', tableModal)" (keypress)="onStatsClickEvent('Rejected', tableModal)">
-                        <div class="text-3xl font-bold">{{requestStats.rejected}}</div>
-                        <div class="text-lg">Rejected</div>
-                      </div>
-                    </div>
-                  </div>
+          <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500">
+            @if(role === 'admin' && selectedService === 'all') {
+            <div class="col-span-1 pt-2 pb-4 bg-red-400 h-[17rem]">
+                <div class="mb-4 flex flex-col items-center h-full text-white">
+                  <div class="text-xl flex-none font-bold">Pending requests</div>
+                  <div class="text-[1rem] font-semibold text-center pt-1 leading-4">Needs action from service owners</div>
+                  <div class="text-8xl font-bold mt-auto cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">{{requestStats.pending}}</div>
                 </div>
-                <div class="col-span-2 py-2">
-                  @if(requestStats.pending > 0) {
-                    <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
-                  } @else {
-                    <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
-                      <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
-                    </div>
-                  }
+            </div>
+            <div class="col-span-3 py-2">
+              @if(requestStats.pending > 0) {
+                <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+              } @else {
+                <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
+                  <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
                 </div>
-                <div class="col-span-2 rounded border-r-2 py-2 border-gray-500">
-                  @if(isSLADataUnavailable()) {
-                    <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
-                      <nz-empty nzNotFoundContent="SLA data is not available for the selected filter"></nz-empty>
-                    </div>
-                  } @else {
-                  <div echarts [options]="slaChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
-                  }
+              }
+            </div>
+          } @else {
+            <div class="col-span-4">
+              <div class="col-span-1 pt-2 pb-4 bg-red-400 h-[17rem]">
+                <div class="mb-4 flex flex-col items-center h-full text-white">
+                  <div class="text-xl flex-none font-bold">Pending requests</div>
+                  <div class="text-[1rem] font-semibold text-center pt-1 leading-4">Needs action from service owners</div>
+                  <div class="text-8xl font-bold mt-auto cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">{{requestStats.pending}}</div>
                 </div>
-              </div>
+            </div>
+            </div>
+          }
+            <div class="col-span-2 rounded border-r-2 py-2 border-gray-500">
+              @if(isSLADataUnavailable()) {
+                <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
+                  <nz-empty nzNotFoundContent="SLA data is not available for the selected filter"></nz-empty>
+                </div>
+              } @else {
+              <div echarts [options]="slaStatusChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+              }
             </div>
           </div>
         </div>
@@ -110,7 +105,7 @@
         </div>
         <div class="col-span-4 p-3">
           <!-- Barchart of pending request count by CurrentStage -->
-          <div class="card rounded border-2 border-gray-500 p-3">
+          <div class="card rounded border-2 border-gray-500 p-3 h-full">
           @if(requestStats.pending > 0) {
             <div class="card-body">
               <div echarts [options]="pendingRequestsByCurrentStageChartOption" (chartClick)="onChartClickEvent($event, tableModal)" class="h-full"></div>
@@ -123,11 +118,11 @@
         </div>
         </div>
         <div class="col-span-6 p-3">
-          <!-- Heatmap of service owners against request types for pending requests -->
+          <!-- Heatmap of service owners against current stage for pending requests -->
           <div class="card rounded border-2 border-gray-500 p-3">
             @if(requestStats.pending > 0) {
             <div class="card-body">
-              <div echarts [options]="serviceOwnerChartOption" class="h-full"  (chartClick)="onChartClickEvent($event, tableModal)"></div>
+              <div echarts [options]="serviceOwnerByCurrentStageChartOption" class="h-full"  (chartClick)="onChartClickEvent($event, tableModal)"></div>
             </div>
           } @else {
             <div class="dnf-wrapper">
@@ -152,5 +147,5 @@
 }
 
 <ng-template #tableModal let-ref="modelRef">
-  <tracing [dataForModal]="modalData" [displayCols]="modalCols" [pageSizeLimit]="5"></tracing>
+  <tracing [dataForModal]="modalData" [displayCols]="modalCols" [pageSizeLimit]="modalPageSize"></tracing>
 </ng-template>

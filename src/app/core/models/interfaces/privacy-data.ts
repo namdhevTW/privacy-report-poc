@@ -8,4 +8,5 @@ export interface IPrivacyData {
   serviceOwner: string
   requestCreatedDate: string
   requestCompletedDate: string
+  subtaskCreatedDate: string
 }
