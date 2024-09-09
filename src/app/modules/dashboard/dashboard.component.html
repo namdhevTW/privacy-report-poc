@@ -51,16 +51,18 @@
         <div class="col-span-6 p-4">
           <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500">
             @if(role === 'admin' && selectedService === 'all') {
-            <div class="col-span-1 pt-2 pb-4 bg-red-400 h-[17rem]">
+            <div class="col-span-1 pt-2 pb-4 bg-red-400 h-[17rem] relative">
+              <span nz-icon nzType="info-circle" nzTheme="fill" class="absolute right-3 top-2 cursor-help text-2xl" nz-tooltip="Displays total pending requests that needs actioning. Clicking on the number would display the datatable in a modal."></span>
                 <div class="mb-4 flex flex-col items-center h-full text-white">
                   <div class="text-xl flex-none font-bold">Pending requests</div>
                   <div class="text-[1rem] font-semibold text-center pt-1 leading-4">Needs action from service owners</div>
                   <div class="text-8xl font-bold mt-auto cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">{{requestStats.pending}}</div>
                 </div>
             </div>
-            <div class="col-span-3 py-2">
+            <div class="col-span-3 py-2 relative">
               @if(requestStats.pending > 0) {
-                <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+                <span nz-icon nzType="info-circle" nzTheme="fill" class="absolute right-3 top-2 cursor-help text-2xl z-20" nz-tooltip="Top 5 services that hold pending requests, by how many count? Click on the corresponding service bars to view the data."></span>
+                <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full z-10" (chartClick)="onChartClickEvent($event, tableModal)"></div>
               } @else {
                 <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
                   <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>

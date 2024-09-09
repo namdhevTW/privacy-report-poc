@@ -353,8 +353,8 @@ export class DashboardService {
 
     return {
       title: {
-        text: 'Subtasks created',
-        subtext: 'Subtasks created over time',
+        text: 'Subtasks created over selected date range',
+        subtext: 'Displays how many subtasks for the service were created over the selected date range',
         textStyle: this.getFontBasedStyle(20),
         subtextStyle: this.getFontBasedStyle(16),
         left: 'center',
@@ -364,7 +364,7 @@ export class DashboardService {
         axisPointer: {
           type: 'shadow',
         },
-        formatter: 'Subtasks created - {c}',
+        formatter: 'Subtasks created<br/> {c}',
         textStyle: this.getFontBasedStyle(14),
       },
       grid: {
