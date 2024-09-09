@@ -2136,7 +2136,7 @@
   {
     "requestId": "73CC78AA6C",
     "requestCreatedDate": "2024-09-06",
-    "subtaskCreatedDate": "2024-09-09",
+    "subtaskCreatedDate": "2024-09-07",
     "serviceOwner": "service-10",
     "slaDays": -6,
     "requestType": "Delete personal information",
@@ -6129,7 +6129,7 @@
   {
     "requestId": "ADA392554B",
     "requestCreatedDate": "2024-09-03",
-    "subtaskCreatedDate": "2024-09-09",
+    "subtaskCreatedDate": "2024-09-06",
     "serviceOwner": "service-8",
     "slaDays": -4,
     "requestType": "Opt out of sale and sharing of data",

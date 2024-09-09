@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { IPrivacyData } from '../../models/interfaces/privacy-data';
 import { IServiceMapping } from '@app/core/models/interfaces/service-mapping';
 
@@ -30,8 +30,16 @@ export class DataService {
 
   getPrivacyData(): Observable<IPrivacyData[]> {
     return this.http.get<IPrivacyData[]>('assets/data/privacy-data.json').pipe(
-      tap(data => this._data = data)
-    );
+      tap(data => this._data = data),
+      map((data: IPrivacyData[]) => data.map(d => {
+        return {
+          ...d,
+          // set SLA days as the difference between the request created date + 30 days and the current date
+          slaDays: Math.ceil((new Date(d.requestCreatedDate).getTime() + 30 * 24 * 60 * 60 * 1000 - new Date().getTime()) / (1000 * 60 * 60 * 24)).toString(),
+          // set SLA days left as the difference between the current date and the subtask created date
+          slaDaysLeft: Math.ceil((new Date(d.subtaskCreatedDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)).toString()
+        };
+      })));
   }
 }
 

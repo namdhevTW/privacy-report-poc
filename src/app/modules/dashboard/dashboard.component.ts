@@ -50,11 +50,13 @@ export class DashboardComponent {
 
   pendingRequestsByServiceOwnerChartOption: EChartsOption = {};
   slaStatusChartOption: EChartsOption = {};
+  requestAgingForServiceOwnerChartOption: EChartsOption = {};
   requestTypeChartOption: EChartsOption = {};
-  serviceOwnerByCurrentStageChartOption: EChartsOption = {};
   pendingRequestsByCurrentStageChartOption: EChartsOption = {};
+  serviceOwnerByCurrentStageChartOption: EChartsOption = {};
+  serviceOwnerSubtasksCreatedTimeLineChartOption: EChartsOption = {};
 
-  _requestCreatedDateRangeControl: any;
+  _dateRangeControl: any;
 
   constructor(
     private dashboardService: DashboardService,
@@ -129,13 +131,13 @@ export class DashboardComponent {
     return date > new Date() || date < new Date('2018-01-01');
   }
 
-  changeSelectedRequestCreatedDate(result: Date): void {
+  changeSelectedDateRange(result: Date): void {
     if (Array.isArray(result)) {
       if (result.length > 0) {
         this.selectedStartDate = result[0];
         this.selectedEndDate = result[1];
       } else {
-        this.setDefaultRequestCreatedDateRange();
+        this.setDefaultDateRange();
       }
       this.applyFilter();
     }
@@ -154,8 +156,8 @@ export class DashboardComponent {
     return this.requestStats.nearingSLAInAWeek === 0 && this.requestStats.breached === 0 && this.requestStats.inSLA === 0;
   }
 
-  storeRequestCreatedDateRangeControl(control: NzDatePickerComponent): void {
-    this._requestCreatedDateRangeControl = control;
+  storeDateRangeControl(control: NzDatePickerComponent): void {
+    this._dateRangeControl = control;
   }
 
   onStatsClickEvent(statClicked: string, templateRef: TemplateRef<{}>): void {
@@ -185,9 +187,19 @@ export class DashboardComponent {
     this.modalData = this.privacyData;
     let eventData = event.data as string[];
     switch (event.seriesName) {
+      case SeriesNames.PendingByServiceOwner:
+        this.setModalDataByServiceOwner(event);
+        this.modalCols = ['requestId', 'currentStage', 'requestCreatedDate', 'slaDays'];
+        this.openModal(`Data for ${SeriesNames.PendingByServiceOwner}`, templateRef);
+        break;
+      case SeriesNames.PendingRequestsAgingForServiceOwner:
+        this.modalData = this.privacyData.filter(d => d.serviceOwner === this.selectedService && d.requestId === event.name);
+        this.modalCols = ['requestId', 'currentStage', 'requestCreatedDate', 'subTaskCreatedDate', 'slaDaysLeft'];
+        this.openModal(`Data for ${SeriesNames.PendingRequestsAgingForServiceOwner} - ${this.services.filter(d => d.value === this.selectedService).map(d => d.label)}`, templateRef);
+        break;
       case SeriesNames.PendingRequestsSLAStatus:
         this.setModalDataBasedOnSLA(event);
-        this.modalCols = ['requestId', 'requestType', 'currentStage', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
+        this.modalCols = this.selectedService === 'all' ? ['requestId', 'requestType', 'currentStage', 'serviceOwner', 'requestCreatedDate', 'slaDays'] : ['requestId', 'currentStage', 'subtaskCreatedDate', 'requestCreatedDate', 'slaDaysLeft'];
         this.openModal(`Data for ${SeriesNames.PendingRequestsSLAStatus}`, templateRef);
         break;
       case SeriesNames.PendingRequestsByCurrentStage:
@@ -206,11 +218,6 @@ export class DashboardComponent {
         this.modalData = this.privacyData.filter(d => d.serviceOwner === eventData[1] && d.currentStage === eventData[0] && this.dashboardService.isRequestPending(d));
         this.modalCols = ['requestId', 'currentStage', 'serviceOwner', 'requestCreatedDate', 'slaDays'];
         this.openModal(`Data for ${SeriesNames.PendingRequestsByServiceOwnerAndCurrentStage}`, templateRef);
-        break;
-      case SeriesNames.PendingByServiceOwner:
-        this.setModalDataByServiceOwner(event);
-        this.modalCols = ['requestId', 'currentStage', 'requestCreatedDate', 'slaDays'];
-        this.openModal(`Data for ${SeriesNames.PendingByServiceOwner}`, templateRef);
         break;
       case SeriesNames.PendingRequestTypeDistribution:
         this.modalData = this.privacyData.filter(d => d.requestType === event.name && this.dashboardService.isRequestPending(d));
@@ -240,14 +247,14 @@ export class DashboardComponent {
     //   this.clearRequestCreatedDateInputs();
     // }
     this.privacyData = this.dashboardService.removeDashboardFilters(this.selectedService);
-    this.setDefaultRequestCreatedDateRange();
+    this.setDefaultDateRange();
     this.applyFilter();
     this.updateRequestStats(this.privacyData);
   }
 
-  private clearRequestCreatedDateInputs(): void {
-    this._requestCreatedDateRangeControl.rangePickerInputs.first.nativeElement.value = '';
-    this._requestCreatedDateRangeControl.rangePickerInputs.last.nativeElement.value = '';
+  private clearDateInputs(): void {
+    this._dateRangeControl.rangePickerInputs.first.nativeElement.value = '';
+    this._dateRangeControl.rangePickerInputs.last.nativeElement.value = '';
   }
 
   private setChartOptions(): void {
@@ -256,15 +263,19 @@ export class DashboardComponent {
     this.serviceOwnerByCurrentStageChartOption = this.dashboardService.fetchServiceOwnerAndCurrentStageMapChartOption(this.privacyData);
     this.pendingRequestsByCurrentStageChartOption = this.dashboardService.fetchPendingRequestsByCurrentStageBarChartOption(this.privacyData);
     this.pendingRequestsByServiceOwnerChartOption = this.dashboardService.fetchPendingRequestsDistributionByServiceOwner(this.privacyData, this.selectedService);
+    if (this.selectedService !== 'all') {
+      this.requestAgingForServiceOwnerChartOption = this.dashboardService.fetchServiceOwnerBasedRequestAgingBarChartOption(this.privacyData, this.selectedService);
+      this.serviceOwnerSubtasksCreatedTimeLineChartOption = this.dashboardService.fetchSubtasksCreatedTimeChartOptions(this.privacyData, this.selectedService, this.selectedStartDate, this.selectedEndDate);
+    }
   }
 
-  private setDefaultRequestCreatedDateRange(): void {
+  private setDefaultDateRange(): void {
     this.selectedStartDate = this.presetQuickDateRanges['Last 90 Days'][0];
     this.selectedEndDate = new Date();
   }
 
   private updateRequestStats(data: IPrivacyData[]): void {
-    this.requestStats = this.dashboardService.calculateTotals(data);
+    this.requestStats = this.dashboardService.calculateTotals(data, this.selectedService);
   }
 
   private openModal(title: string, templateRef: TemplateRef<{}>): void {
@@ -284,13 +295,13 @@ export class DashboardComponent {
   private setModalDataBasedOnSLA(event: ECElementEvent): void {
     switch ((event.data as any)?.name) {
       case SLAChartLabels.ExceedsSLA:
-        this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) <= 0);
+        this.modalData = this.privacyData.filter(d => this.selectedService === 'all' ? this.dashboardService.isRequestPending(d) && Number(d.slaDays) <= 0 : this.dashboardService.isRequestPending(d) && Number(d.slaDaysLeft) < 0);
         break;
       case SLAChartLabels.NearingSLA:
-        this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7);
+        this.modalData = this.privacyData.filter(d => this.selectedService === 'all' ? this.dashboardService.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7 : this.dashboardService.isRequestPending(d) && Number(d.slaDaysLeft) === 0);
         break;
       case SLAChartLabels.MeetsSLA:
-        this.modalData = this.privacyData.filter(d => this.dashboardService.isRequestPending(d) && Number(d.slaDays) >= 7);
+        this.modalData = this.privacyData.filter(d => this.selectedService === 'all' ? this.dashboardService.isRequestPending(d) && Number(d.slaDays) >= 7 : this.dashboardService.isRequestPending(d) && Number(d.slaDaysLeft) > 0);
         break;
     }
   }

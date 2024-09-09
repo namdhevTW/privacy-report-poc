@@ -35,15 +35,15 @@ export class DashboardService {
     return data.filter(d => d.serviceOwner === serviceOwner);
   }
 
-  calculateTotals(data: IPrivacyData[]): IPrivacyRequestStats {
+  calculateTotals(data: IPrivacyData[], selectedServiceOwner: string): IPrivacyRequestStats {
     const totals = {
       all: data.length,
       completed: data.filter(d => this.isRequestCompleted(d)).length,
       pending: data.filter(d => this.isRequestPending(d)).length,
       rejected: data.filter(d => this.isRequestRejected(d)).length,
-      inSLA: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) >= 7).length,
-      nearingSLAInAWeek: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7).length,
-      breached: data.filter(d => this.isRequestPending(d) && Number(d.slaDays) < 0).length,
+      inSLA: data.filter(d => selectedServiceOwner === 'all' ? this.isRequestPending(d) && Number(d.slaDays) >= 7 : this.isRequestPending(d) && Number(d.slaDaysLeft) > 0).length,
+      nearingSLAInAWeek: data.filter(d => selectedServiceOwner === 'all' ? this.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7 : this.isRequestPending(d) && Number(d.slaDaysLeft) === 0).length,
+      breached: data.filter(d => selectedServiceOwner === 'all' ? this.isRequestPending(d) && Number(d.slaDays) < 0 : this.isRequestPending(d) && Number(d.slaDaysLeft) < 0).length,
     };
     return totals;
   }
@@ -223,6 +223,187 @@ export class DashboardService {
         },
       ],
     };
+  }
+
+  fetchServiceOwnerBasedRequestAgingBarChartOption(data: IPrivacyData[], selectedService: string): EChartsOption {
+
+    const pendingRequests = data.filter(d => d.serviceOwner === selectedService && this.isRequestPending(d));
+    let agingData = pendingRequests.map(d => {
+      const aging = Math.floor((new Date().getTime() - new Date(d.subtaskCreatedDate).getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        label: d.requestId,
+        value: aging,
+      }
+    });
+
+    agingData = agingData.sort((a, b) => b.value - a.value).slice(0, 5);
+
+
+    return {
+      title: {
+        text: 'Request aging',
+        subtext: 'Aging for top 5 pending requests (in days)',
+        textStyle: this.getFontBasedStyle(20),
+        subtextStyle: this.getFontBasedStyle(16),
+        left: 'center',
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow',
+        },
+        formatter: 'Request Id - {b}<br/>{c} days',
+        textStyle: this.getFontBasedStyle(14),
+      },
+      grid: {
+        bottom: '8%',
+        left: '15%',
+        height: '60%',
+      },
+      xAxis: {
+        type: 'category',
+        data: agingData.map(d => d.label),
+        axisTick: {
+          alignWithLabel: true,
+        },
+        axisLabel: this.getFontBasedStyle(12),
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: this.getFontBasedStyle(12),
+      },
+      series: [
+        {
+          name: SeriesNames.PendingRequestsAgingForServiceOwner,
+          type: 'bar',
+          data: agingData.map(d => {
+            return {
+              value: d.value,
+              itemStyle: {
+                color: d.value > 7 ? '#f87171' : d.value > 3 ? '#facc15' : '#10b981',
+              },
+              label: {
+                position: 'top',
+                show: true,
+                fontSize: 14,
+                fontWeight: 'bold',
+                color: d.value > 7 ? '#f87171' : d.value > 3 ? '#facc15' : '#10b981'
+              },
+            };
+          }),
+          itemStyle: {
+            borderRadius: [8, 8, 0, 0],
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)',
+            },
+          },
+        },
+      ],
+    };
+  }
+
+  fetchSubtasksCreatedTimeChartOptions(data: IPrivacyData[], selectedService: string, startDate: Date, endDate: Date): EChartsOption {
+
+    // Based on the selected date range, filter the data and show count of subtasks created in that date range as a line chart
+    // if the date range is in last 30 days, show the data in weeks
+    // if the date range is in last 6 months, show the data in months
+    // else show the data in years
+
+    const pendingRequests = data.filter(d => d.serviceOwner === selectedService && this.isRequestPending(d));
+    let subtasksCreatedData = pendingRequests.map(d => {
+      return {
+        label: d.requestId,
+        value: new Date(d.subtaskCreatedDate).getTime(),
+      }
+    });
+
+    subtasksCreatedData = subtasksCreatedData.sort((a, b) => a.value - b.value);
+
+    const dateRange = endDate.getTime() - startDate.getTime();
+    let xAxisData = [];
+    let yAxisData = [];
+    let interval = 1;
+    let intervalType = 'day';
+
+    if (dateRange <= 30 * 24 * 60 * 60 * 1000) {
+      interval = 7;
+      intervalType = 'week';
+    } else if (dateRange <= 6 * 30 * 24 * 60 * 60 * 1000) {
+      interval = 30;
+      intervalType = 'month';
+    } else {
+      interval = 365;
+      intervalType = 'year';
+    }
+
+    let currentInterval = startDate.getTime();
+    let count = 0;
+    let index = 0;
+    while (currentInterval <= endDate.getTime()) {
+      const nextInterval = new Date(currentInterval + interval * 24 * 60 * 60 * 1000);
+      const subtasksInInterval = subtasksCreatedData.filter(d => d.value >= currentInterval && d.value < nextInterval.getTime()).length;
+      xAxisData.push(`${new Date(currentInterval).toLocaleDateString()} - ${new Date(nextInterval).toLocaleDateString()}`);
+      yAxisData.push(subtasksInInterval);
+      currentInterval = nextInterval.getTime();
+      index++;
+    }
+
+    return {
+      title: {
+        text: 'Subtasks created',
+        subtext: 'Subtasks created over time',
+        textStyle: this.getFontBasedStyle(20),
+        subtextStyle: this.getFontBasedStyle(16),
+        left: 'center',
+      },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow',
+        },
+        formatter: 'Subtasks created - {c}',
+        textStyle: this.getFontBasedStyle(14),
+      },
+      grid: {
+        bottom: '8%',
+        left: '15%',
+        height: '60%',
+      },
+      xAxis: {
+        type: 'category',
+        data: xAxisData,
+        axisTick: {
+          alignWithLabel: true,
+        },
+        axisLabel: this.getFontBasedStyle(12),
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: this.getFontBasedStyle(12),
+      },
+      series: [
+        {
+          name: 'Subtasks created',
+          type: 'line',
+          data: yAxisData,
+          itemStyle: {
+            color: '#10b981',
+            borderRadius: [8, 8, 0, 0],
+            borderWidth: 2,
+          },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)',
+            },
+          },
+        },
+      ],
+    };
+
   }
 
   fetchSLAComplianceChartOptions(stats: IPrivacyRequestStats): EChartsOption {
@@ -543,6 +724,7 @@ export enum EChartType {
 export enum SeriesNames {
   PendingByServiceOwner = 'Pending requests distribution by Service Owner',
   PendingRequestsSLAStatus = 'Pending requests - SLA status',
+  PendingRequestsAgingForServiceOwner = 'Pending requests aging for service owner',
   PendingRequestTypeDistribution = 'Pending requests - request type distribution',
   PendingRequestsByCurrentStage = 'Pending requests by current stage',
   PendingRequestsByServiceOwnerAndCurrentStage = 'Pending requests by service owner and current stage',

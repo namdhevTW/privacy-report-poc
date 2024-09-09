@@ -15,7 +15,7 @@ import { IServiceNotificationEmailDraftInput } from '@app/core/models/interfaces
 })
 export class TracingComponent {
   @Input() dataForModal: IPrivacyData[] = [];
-  @Input() displayCols: string[] = ['requestId', 'requestType', 'serviceOwner', 'currentStage', 'state', 'slaDays', 'requestCreatedDate'];
+  @Input() displayCols: string[] = ['requestId', 'requestType', 'serviceOwner', 'currentStage', 'state', 'slaDays', 'slaDaysLeft', 'subtaskCreatedDate', 'requestCreatedDate'];
   @Input() pageSizeLimit: number = 10;
 
   allChecked = false;
@@ -268,6 +268,32 @@ export class TracingComponent {
         showFilter: false,
         showSort: true,
         showCol: this.displayCols.includes('slaDays'),
+        sortDirections: ['ascend', 'descend', null]
+      },
+      {
+        name: 'SLA Days Left',
+        value: 'slaDaysLeft',
+        sortOrder: null,
+        sortFn: (a: IPrivacyData, b: IPrivacyData) => Number(a.slaDaysLeft) - Number(b.slaDaysLeft),
+        listOfFilter: [],
+        filterFn: null,
+        filterMultiple: false,
+        showFilter: false,
+        showSort: true,
+        showCol: this.displayCols.includes('slaDaysLeft'),
+        sortDirections: ['ascend', 'descend', null]
+      },
+      {
+        name: 'Subtask created date',
+        value: 'subtaskCreatedDate',
+        sortOrder: null,
+        sortFn: (a: IPrivacyData, b: IPrivacyData) => a.requestCreatedDate.localeCompare(b.requestCreatedDate),
+        listOfFilter: [],
+        filterFn: null,
+        filterMultiple: false,
+        showFilter: false,
+        showSort: true,
+        showCol: this.displayCols.includes('subtaskCreatedDate'),
         sortDirections: ['ascend', 'descend', null]
       },
       {

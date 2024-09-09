@@ -28,9 +28,9 @@
 
 
     <!-- Request creation range picker -->
-    <span class="text-lg pl-4 pr-2">Created Date: </span>
-    <nz-range-picker #requestCreatedDateRangePicker [nzRanges]="presetQuickDateRanges" [ngModel]="[selectedStartDate, selectedEndDate]"
-      (ngModelChange)="changeSelectedRequestCreatedDate($event); storeRequestCreatedDateRangeControl(requestCreatedDateRangePicker)" [nzFormat]="'dd-MMM-yyyy'" nzSize="large" [nzDisabledDate]="disabledDates"></nz-range-picker>
+    <span class="text-lg pl-4 pr-2">Date range: </span>
+    <nz-range-picker #dateRangePicker [nzRanges]="presetQuickDateRanges" [ngModel]="[selectedStartDate, selectedEndDate]"
+      (ngModelChange)="changeSelectedDateRange($event); storeDateRangeControl(dateRangePicker)" [nzFormat]="'dd-MMM-yyyy'" nzSize="large" [nzDisabledDate]="disabledDates"></nz-range-picker>
     <span class="pr-2"></span>
 
     <a nz-tooltip nzTooltipTitle="Remove all filters" (click)="removeFilter()">
@@ -68,14 +68,23 @@
               }
             </div>
           } @else {
-            <div class="col-span-4">
+            <div class="col-span-1">
               <div class="col-span-1 pt-2 pb-4 bg-red-400 h-[17rem]">
                 <div class="mb-4 flex flex-col items-center h-full text-white">
                   <div class="text-xl flex-none font-bold">Pending requests</div>
                   <div class="text-[1rem] font-semibold text-center pt-1 leading-4">Needs action from service owners</div>
                   <div class="text-8xl font-bold mt-auto cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">{{requestStats.pending}}</div>
                 </div>
+              </div>
             </div>
+            <div class="col-span-3 py-2">
+              @if(requestStats.pending > 0) {
+                <div echarts [options]="requestAgingForServiceOwnerChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+              } @else {
+                <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
+                  <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
+                </div>
+              }
             </div>
           }
             <div class="col-span-2 rounded border-r-2 py-2 border-gray-500">
@@ -120,9 +129,14 @@
         <div class="col-span-6 p-3">
           <!-- Heatmap of service owners against current stage for pending requests -->
           <div class="card rounded border-2 border-gray-500 p-3">
+
             @if(requestStats.pending > 0) {
-            <div class="card-body">
+              <div class="card-body">
+              @if(role === 'admin' && selectedService === 'all') {
               <div echarts [options]="serviceOwnerByCurrentStageChartOption" class="h-full"  (chartClick)="onChartClickEvent($event, tableModal)"></div>
+              } @else {
+              <div echarts [options]="serviceOwnerSubtasksCreatedTimeLineChartOption" class="h-full"  (chartClick)="onChartClickEvent($event, tableModal)"></div>
+              }
             </div>
           } @else {
             <div class="dnf-wrapper">
@@ -134,7 +148,7 @@
       </div>
       } @else {
       <!-- Display No data in a tailwind formatted center box -->
-      <div class="absolute top-1/2 left-1/2">
+      <div class="flex flex-col h-[80vh] w-full items-center justify-center">
         <nz-empty nzNotFoundContent="Data not found. Please retry with another filter"></nz-empty>
       </div>
       }

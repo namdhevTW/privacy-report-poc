@@ -70,6 +70,8 @@
         }
         <td *ngIf="isColumnVisible('serviceOwner')" nzAlign="center"> {{privData.serviceOwner}}</td>
         <td *ngIf="isColumnVisible('slaDays')" nzAlign="center">{{privData.slaDays}}</td>
+        <td *ngIf="isColumnVisible('slaDaysLeft')" nzAlign="center">{{privData.slaDaysLeft}}</td>
+        <td *ngIf="isColumnVisible('subtaskCreatedDate')" nzAlign="center">{{ privData.subtaskCreatedDate | date: 'dd-MMM-yyyy' }}</td>
         <td *ngIf="isColumnVisible('requestCreatedDate')" nzAlign="center">{{ privData.requestCreatedDate | date: 'dd-MMM-yyyy' }}</td>
         <td *ngIf="isColumnVisible('requestCompletedDate')" nzAlign="center">{{privData.requestCompletedDate | date: 'dd-MMM-yyyy' }}</td>
         <td *ngIf="isColumnVisible('requestType')" nzAlign="center">{{ privData.requestType }}</td>
