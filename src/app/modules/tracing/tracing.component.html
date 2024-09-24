@@ -68,7 +68,7 @@
             }
           }
         }
-        <td *ngIf="isColumnVisible('serviceOwner')" nzAlign="center"> {{privData.serviceOwner}}</td>
+        <td *ngIf="isColumnVisible('serviceOwner')" nzAlign="center"> {{getFriendlyServiceOwnerName(privData.serviceOwner)}}</td>
         <td *ngIf="isColumnVisible('slaDays')" nzAlign="center">{{privData.slaDays}}</td>
         <td *ngIf="isColumnVisible('slaDaysLeft')" nzAlign="center">{{privData.slaDaysLeft}}</td>
         <td *ngIf="isColumnVisible('subtaskCreatedDate')" nzAlign="center">{{ privData.subtaskCreatedDate | date: 'dd-MMM-yyyy' }}</td>

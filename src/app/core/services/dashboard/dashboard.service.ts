@@ -31,7 +31,7 @@ export class DashboardService {
       tap(data => this.serviceMapping = data)
     );
   }
-
+  // #region Old code
   calculateTotals(data: IPrivacyData[], selectedServiceOwner: string): IPrivacyRequestStats {
     const totals = {
       all: data.length,
@@ -682,6 +682,9 @@ export class DashboardService {
     return data.currentStage === 'Rejected';
   }
 
+  // #endregion
+
+  // #region private functions
   private getFontBasedStyle(fntSize = 12, align = 'center'): any {
     return {
       fontFamily: 'Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -724,4 +727,54 @@ export class DashboardService {
     Object.keys(requestTypes).sort((a, b) => requestTypes[b] - requestTypes[a]);
     return Object.keys(requestTypes).map(key => ({ name: key, value: requestTypes[key] }));
   }
+
+  private getTopServiceOwnersWithPendingRequests(data: IPrivacyData[]): { value: number, name: string }[] {
+    const serviceOwners = data
+      .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
+      .map(d => d.serviceOwner)
+      .reduce((acc, curr) => {
+        acc[curr] = (acc[curr] || 0) + 1;
+        return acc;
+      }, {} as { [key: string]: number });
+
+    return Object.keys(serviceOwners).sort((a, b) => serviceOwners[b] - serviceOwners[a]).slice(0, 5).map(key => ({ name: key, value: serviceOwners[key] }));
+  }
+
+  private getTopCurrentStageWithPendingRequests(data: IPrivacyData[]): { value: number, name: string }[] {
+    const currentStages = data
+      .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
+      .map(d => d.currentStage)
+      .reduce((acc, curr) => {
+        acc[curr] = (acc[curr] || 0) + 1;
+        return acc;
+      }, {} as { [key: string]: number });
+
+    return Object.keys(currentStages).sort((a, b) => currentStages[b] - currentStages[a]).slice(0, 5).map(key => ({ name: key, value: currentStages[key] }));
+  }
+
+  private getTopServiceExceedingSLA(data: IPrivacyData[]): { value: number, name: string }[] {
+    const serviceOwners = data
+      .filter(d => this.calculateExceedsSLA('all', d))
+      .map(d => d.serviceOwner)
+      .reduce((acc, curr) => {
+        acc[curr] = (acc[curr] || 0) + 1;
+        return acc;
+      }, {} as { [key: string]: number });
+
+    return Object.keys(serviceOwners).sort((a, b) => serviceOwners[b] - serviceOwners[a]).slice(0, 5).map(key => ({ name: key, value: serviceOwners[key] }));
+  }
+
+  private getTopCurrentDataExceedingSLA(data: IPrivacyData[]): { value: number, name: string }[] {
+    const currentStages = data
+      .filter(d => this.calculateExceedsSLA('all', d))
+      .map(d => d.currentStage)
+      .reduce((acc, curr) => {
+        acc[curr] = (acc[curr] || 0) + 1;
+        return acc;
+      }, {} as { [key: string]: number });
+
+    return Object.keys(currentStages).sort((a, b) => currentStages[b] - currentStages[a]).slice(0, 5).map(key => ({ name: key, value: currentStages[key] }));
+  }
+
+  // #endregion
 }

@@ -18,8 +18,8 @@
 
     <!-- Service Dropdown -->
     @if(role === 'coordinator') {
-    <span class="text-lg pl-4 pr-2">New version: </span>
-    <nz-switch [(ngModel)]="isNewVersion" (ngModelChange)="onNewVersionClick()"></nz-switch>
+    <!-- <span class="text-lg pl-4 pr-2">New version: </span>
+    <nz-switch [(ngModel)]="isNewVersion" (ngModelChange)="onNewVersionClick()"></nz-switch> -->
 
     <span class="text-lg pl-4 pr-2">Service: </span>
     <nz-select [nzOptionOverflowSize]="services.length" [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedService" (ngModelChange)="changeSelectedService($event); applyFilter()" nzSize="large">

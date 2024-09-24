@@ -102,6 +102,10 @@ export class TracingComponent {
     });
   }
 
+  getFriendlyServiceOwnerName(serviceOwner: string): string {
+    return this._availableServices.find(s => s.value === serviceOwner)?.name ?? '';
+  }
+
   draftSendEmail(templateRef: TemplateRef<{}>): void {
     this.serviceEmailInput = [];
     this._selectedRequestServiceDataForEmail.forEach(d => {
