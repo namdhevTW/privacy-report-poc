@@ -14,6 +14,9 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TracingModule } from "@modules/tracing/tracing.module";
+import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzStatisticModule } from 'ng-zorro-antd/statistic';
 
 @NgModule({
   declarations: [
@@ -25,6 +28,7 @@ import { TracingModule } from "@modules/tracing/tracing.module";
   imports: [CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    NzGridModule,
     NzSegmentedModule,
     NzEmptyModule,
     NzModalModule,
@@ -33,7 +37,9 @@ import { TracingModule } from "@modules/tracing/tracing.module";
     NzSwitchModule,
     NzToolTipModule,
     NzDatePickerModule,
+    NzStatisticModule,
     TracingModule,
+    NgxChartsModule,
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts'),
     })],

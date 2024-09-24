@@ -40,7 +40,7 @@ export class TracingComponent {
 
   stateOptions: string[] = [];
 
-  private role: string = 'admin';
+  private role: string = 'coordinator';
   private serviceOwner: string = '';
   private _selectedRequestServiceDataForEmail: { requestId: string, service: string }[] = [];
   private _availableServices: IServiceMapping[] = [];
@@ -64,8 +64,6 @@ export class TracingComponent {
   }
 
   ngOnDestroy(): void {
-    this.authService.roleChangeSubject.unsubscribe();
-    this.authService.serviceOwnerChangeSubject.unsubscribe();
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
@@ -180,8 +178,8 @@ export class TracingComponent {
     return data.currentStage === 'Completed' || data.currentStage === 'Rejected';
   }
 
-  isAdmin(): boolean {
-    return this.role === 'admin';
+  isCoordinator(): boolean {
+    return this.role === 'coordinator';
   }
 
   exportDataAsCSV(): void {
@@ -252,9 +250,9 @@ export class TracingComponent {
         listOfFilter: this._availableServices.map(s => ({ text: s.name, value: s.value })),
         filterFn: (value: string[], item: IPrivacyData) => value.some(v => item.serviceOwner === v),
         filterMultiple: true,
-        showFilter: this.isAdmin(),
+        showFilter: this.isCoordinator(),
         showSort: true,
-        showCol: this.isAdmin() && this.displayCols.includes('serviceOwner'),
+        showCol: this.isCoordinator() && this.displayCols.includes('serviceOwner'),
         sortDirections: ['ascend', 'descend', null]
       },
       {

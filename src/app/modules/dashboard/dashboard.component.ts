@@ -1,10 +1,11 @@
 import { Component, TemplateRef } from '@angular/core';
 import { ECElementEvent, EChartsOption } from 'echarts';
 import { IPrivacyData } from '@core/models/interfaces/privacy-data';
-import { DashboardService, SeriesNames, SLAChartLabels } from '@core/services/dashboard/dashboard.service';
+import { DashboardService } from '@core/services/dashboard/dashboard.service';
 import { AuthService } from '@app/core/services/auth/auth.service';
 import { NzDatePickerComponent } from 'ng-zorro-antd/date-picker';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { SeriesNames, SLAChartLabels } from '@app/core/models/enums/chart-helper-enums';
 
 @Component({
   selector: 'dashboard',
@@ -12,7 +13,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent {
-  role: string = 'admin';
+  role: string = 'coordinator';
   selectedTab: number = 0;
 
   requestStats = {
@@ -20,9 +21,9 @@ export class DashboardComponent {
     completed: 0,
     pending: 0,
     rejected: 0,
-    inSLA: 0,
-    nearingSLAInAWeek: 0,
-    breached: 0,
+    meetsSLA: 0,
+    nearingSLA: 0,
+    exceededSLA: 0,
   };
 
   services: { value: string, label: string }[] = [];
@@ -36,6 +37,7 @@ export class DashboardComponent {
   modalCols: string[] = ['requestId', 'requestType', 'currentStage', 'requestCreatedDate', 'slaDays'];
   modalPageSize: number = 5;
   consentModeOn: boolean = false;
+  isNewVersion: boolean = false;
 
   selectedStartDate: Date = new Date(new Date().setDate(new Date().getDate() - 90));
   selectedEndDate: Date = new Date();
@@ -55,6 +57,8 @@ export class DashboardComponent {
   pendingRequestsByCurrentStageChartOption: EChartsOption = {};
   serviceOwnerByCurrentStageChartOption: EChartsOption = {};
   serviceOwnerSubtasksCreatedTimeLineChartOption: EChartsOption = {};
+
+  pendingStatsCardData: { title: string, value: number }[] = [];
 
   _dateRangeControl: any;
 
@@ -153,7 +157,7 @@ export class DashboardComponent {
   }
 
   isSLADataUnavailable(): boolean {
-    return this.requestStats.nearingSLAInAWeek === 0 && this.requestStats.breached === 0 && this.requestStats.inSLA === 0;
+    return this.requestStats.nearingSLA === 0 && this.requestStats.exceededSLA === 0 && this.requestStats.meetsSLA === 0;
   }
 
   storeDateRangeControl(control: NzDatePickerComponent): void {
@@ -183,6 +187,14 @@ export class DashboardComponent {
     }
   }
 
+  onNewVersionClick(): void {
+    if (this.isNewVersion) {
+
+    } else {
+      this.applyFilter();
+    }
+  }
+
   onChartClickEvent(event: ECElementEvent, templateRef: TemplateRef<{}>): void {
     this.modalData = this.privacyData;
     let eventData = event.data as string[];
@@ -205,7 +217,7 @@ export class DashboardComponent {
       case SeriesNames.PendingRequestsByCurrentStage:
         this.modalData = this.privacyData.filter(d => d.currentStage === event.name.replace(/\n/g, '-'));
         this.modalCols = ['requestId', 'currentStage', 'requestCreatedDate', 'slaDays'];
-        if (this.role == 'admin') {
+        if (this.role == 'coordinator') {
           this.modalCols = [...this.modalCols, 'serviceOwner'];
         }
         this.openModal(`Data for ${SeriesNames.PendingRequestsByCurrentStage}`, templateRef);
@@ -240,7 +252,7 @@ export class DashboardComponent {
     this.selectedState = 'All';
     this.selectedRequestType = 'All';
     this.consentModeOn = false;
-    if (this.role === 'admin') {
+    if (this.role === 'coordinator') {
       this.selectedService = 'all';
     }
     // if (this._requestCreatedDateRangeControl?.rangePickerInputs?.first) {

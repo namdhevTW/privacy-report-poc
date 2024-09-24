@@ -30,8 +30,8 @@ describe('TracingComponent', () => {
     expect(component.colDefs.length).toBeGreaterThan(0);
   });
 
-  it('should check if user is admin', () => {
-    const isAdmin = component['isAdmin']();
-    expect(isAdmin).toBeTrue();
+  it('should check if user is coordinator', () => {
+    const isCoordinator = component['isCoordinator']();
+    expect(isCoordinator).toBeTrue();
   });
 });

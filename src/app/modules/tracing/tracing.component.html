@@ -2,7 +2,7 @@
   <div class="flex mb-4 justify-between">
     <div class="flex items-center">
       <h1 class="text-2xl font-semibold mr-3">Request details</h1>
-      <a class="text-blue-500 text-sm"  *ngIf="dataForModal.length === 0 && getRowsCheckedForSendingEmail() > 0 && isAdmin()" (click)="draftSendEmail(draftEmailModal)">
+      <a class="text-blue-500 text-sm"  *ngIf="dataForModal.length === 0 && getRowsCheckedForSendingEmail() > 0 && isCoordinator()" (click)="draftSendEmail(draftEmailModal)">
         <span nz-icon nzType="mail" class="pr-1"></span>
         @if(getRowsCheckedForSendingEmail() > 1) {
           Draft & send selected emails ({{getRowsCheckedForSendingEmail()}})
@@ -27,7 +27,7 @@
     (nzCurrentPageDataChange)="onPageChange($event)">
     <thead>
       <tr>
-        <th *ngIf="dataForModal.length == 0 && isAdmin()" nzShowCheckbox="true" scope="col" [(nzChecked)]="allChecked"
+        <th *ngIf="dataForModal.length == 0 && isCoordinator()" nzShowCheckbox="true" scope="col" [(nzChecked)]="allChecked"
           [nzIndeterminate]="indeterminate" (nzCheckedChange)="onCheckAll($event)" nzLabel="Select all">
         </th>
         @for (col of colDefs; track col) {
@@ -51,7 +51,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let privData of tracingTable.data">
-        <td *ngIf="dataForModal.length == 0 && isAdmin()" nzShowCheckbox="true" [nzDisabled]="isProcessedData(privData)"
+        <td *ngIf="dataForModal.length == 0 && isCoordinator()" nzShowCheckbox="true" [nzDisabled]="isProcessedData(privData)"
           [nzChecked]="checkReqIdServiceInEmailSendData(privData)"
           (nzCheckedChange)="onRowCheck($event, privData)"></td>
         <td *ngIf="isColumnVisible('requestId')" nzAlign="center">{{ privData.requestId }}</td>

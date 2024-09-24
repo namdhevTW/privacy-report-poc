@@ -5,6 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { EChartsOption } from 'echarts';
 import { IPrivacyRequestStats } from '@app/core/models/interfaces/privacy-request-stats';
 import { IServiceMapping } from '@app/core/models/interfaces/service-mapping';
+import { SeriesNames, SLAChartLabels, SLAStatusColors } from '@core/models/enums/chart-helper-enums';
 
 @Injectable({
   providedIn: 'root'
@@ -31,19 +32,15 @@ export class DashboardService {
     );
   }
 
-  filterDataByServiceOwner(data: IPrivacyData[], serviceOwner: string): IPrivacyData[] {
-    return data.filter(d => d.serviceOwner === serviceOwner);
-  }
-
   calculateTotals(data: IPrivacyData[], selectedServiceOwner: string): IPrivacyRequestStats {
     const totals = {
       all: data.length,
       completed: data.filter(d => this.isRequestCompleted(d)).length,
       pending: data.filter(d => this.isRequestPending(d)).length,
       rejected: data.filter(d => this.isRequestRejected(d)).length,
-      inSLA: data.filter(d => selectedServiceOwner === 'all' ? this.isRequestPending(d) && Number(d.slaDays) >= 7 : this.isRequestPending(d) && Number(d.slaDaysLeft) > 0).length,
-      nearingSLAInAWeek: data.filter(d => selectedServiceOwner === 'all' ? this.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7 : this.isRequestPending(d) && Number(d.slaDaysLeft) === 0).length,
-      breached: data.filter(d => selectedServiceOwner === 'all' ? this.isRequestPending(d) && Number(d.slaDays) < 0 : this.isRequestPending(d) && Number(d.slaDaysLeft) < 0).length,
+      meetsSLA: data.filter(d => this.calculateMeetsSLA(selectedServiceOwner, d)).length,
+      nearingSLA: data.filter(d => this.calculateNearingSLA(selectedServiceOwner, d)).length,
+      exceededSLA: data.filter(d => this.calculateExceedsSLA(selectedServiceOwner, d)).length,
     };
     return totals;
   }
@@ -98,21 +95,6 @@ export class DashboardService {
     }
 
     return filteredData;
-  }
-
-  getUniquePendingRequestTypesWithCount(data: IPrivacyData[]): { value: number, name: string }[] {
-    // Get unique request types with count and map request type to name and count to value
-    const requestTypes = data
-      .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
-      .map(d => d.requestType)
-      .reduce((acc, curr) => {
-        acc[curr] = (acc[curr] || 0) + 1;
-        return acc;
-      }, {} as { [key: string]: number });
-
-    // sort request types by count in descending order
-    Object.keys(requestTypes).sort((a, b) => requestTypes[b] - requestTypes[a]);
-    return Object.keys(requestTypes).map(key => ({ name: key, value: requestTypes[key] }));
   }
 
   getUniqueServiceOwnersWithCurrentStagesAndPendingRequestCount(data: IPrivacyData[]): [requestType: string, serviceOwner: string, count: number][] {
@@ -451,9 +433,9 @@ export class DashboardService {
           },
           color: ['#10b981', '#facc15', '#f87171'],
           data: [
-            { value: stats.inSLA, name: SLAChartLabels.MeetsSLA },
-            { value: stats.nearingSLAInAWeek, name: SLAChartLabels.NearingSLA },
-            { value: stats.breached, name: SLAChartLabels.ExceedsSLA },
+            { value: stats.meetsSLA, name: SLAChartLabels.MeetsSLA },
+            { value: stats.nearingSLA, name: SLAChartLabels.NearingSLA },
+            { value: stats.exceededSLA, name: SLAChartLabels.ExceedsSLA },
           ],
         },
       ],
@@ -488,7 +470,9 @@ export class DashboardService {
         shadowColor: 'rgba(0, 0, 0, 0.5)',
       },
       legend: {
-        orient: 'horizontal',
+        orient: 'vertical',
+        height: '10%',
+        type: 'scroll',
         bottom: 0,
         left: 0,
         data: this.getUniquePendingRequestTypesWithCount(data).map(d => d.name),
@@ -504,7 +488,7 @@ export class DashboardService {
             borderRadius: 15,
             borderWidth: 0.5
           },
-          color: ['#10b981', '#facc15', '#f87171', '#3b82f6', '#64748b', '#818cf8', '#a78bfa'],
+          // color: ['#10b981', '#facc15', '#f87171', '#3b82f6', '#64748b', '#818cf8', '#a78bfa'],
           radius: ['35%', '45%'],
           // color: ['#047857', '#facc15', '#dc2626'],
           label: {
@@ -710,28 +694,34 @@ export class DashboardService {
     return data.requestType === this.saleShareOptOutRequestTypeText || data.requestType === this.rightToLimitUseTypeText;
   }
 
-  private isOptOutStage(data: IPrivacyData): boolean {
-    return data.currentStage.includes('OPT-OUT');
+  private calculateExceedsSLA(selectedServiceOwner: string, d: IPrivacyData): unknown {
+    return selectedServiceOwner === 'all' ? this.isRequestPending(d) && Number(d.slaDays) < 0 : this.isRequestPending(d) && Number(d.slaDaysLeft) < 0;
   }
-}
 
-export enum EChartType {
-  Bar = 'bar',
-  Pie = 'pie',
-  Heatmap = 'heatmap',
-}
+  private calculateNearingSLA(selectedServiceOwner: string, d: IPrivacyData): unknown {
+    return selectedServiceOwner === 'all' ? this.isRequestPending(d) && Number(d.slaDays) > 0 && Number(d.slaDays) < 7 : this.isRequestPending(d) && Number(d.slaDaysLeft) === 0;
+  }
 
-export enum SeriesNames {
-  PendingByServiceOwner = 'Pending requests distribution by Service Owner',
-  PendingRequestsSLAStatus = 'Pending requests - SLA status',
-  PendingRequestsAgingForServiceOwner = 'Pending requests aging for service owner',
-  PendingRequestTypeDistribution = 'Pending requests - request type distribution',
-  PendingRequestsByCurrentStage = 'Pending requests by current stage',
-  PendingRequestsByServiceOwnerAndCurrentStage = 'Pending requests by service owner and current stage',
-}
+  private calculateMeetsSLA(selectedServiceOwner: string, d: IPrivacyData): boolean {
+    return selectedServiceOwner === 'all' ? this.isRequestPending(d) && Number(d.slaDays) >= 7 : this.isRequestPending(d) && Number(d.slaDaysLeft) > 0;
+  }
 
-export enum SLAChartLabels {
-  MeetsSLA = 'Meets SLA',
-  NearingSLA = 'Nearing SLA',
-  ExceedsSLA = 'Exceeds SLA',
+  private filterDataByServiceOwner(data: IPrivacyData[], serviceOwner: string): IPrivacyData[] {
+    return data.filter(d => d.serviceOwner === serviceOwner);
+  }
+
+  private getUniquePendingRequestTypesWithCount(data: IPrivacyData[]): { value: number, name: string }[] {
+    // Get unique request types with count and map request type to name and count to value
+    const requestTypes = data
+      .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
+      .map(d => d.requestType)
+      .reduce((acc, curr) => {
+        acc[curr] = (acc[curr] || 0) + 1;
+        return acc;
+      }, {} as { [key: string]: number });
+
+    // sort request types by count in descending order
+    Object.keys(requestTypes).sort((a, b) => requestTypes[b] - requestTypes[a]);
+    return Object.keys(requestTypes).map(key => ({ name: key, value: requestTypes[key] }));
+  }
 }

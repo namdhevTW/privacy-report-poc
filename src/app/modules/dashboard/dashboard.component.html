@@ -9,15 +9,18 @@
     <span class="flex items-center">
 
     <!--State options-->
-    <span class="text-lg pr-2 pl-4">State: </span>
+    <!-- <span class="text-lg pr-2 pl-4">State: </span>
     <nz-select [nzOptionOverflowSize]="states.length" [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedState" (ngModelChange)="applyFilter()" nzSize="large">
       @for (state of states; track state) {
       <nz-option [nzValue]="state" [nzLabel]="state"></nz-option>
       }
-    </nz-select>
+    </nz-select> -->
 
     <!-- Service Dropdown -->
-    @if(role === 'admin') {
+    @if(role === 'coordinator') {
+    <span class="text-lg pl-4 pr-2">New version: </span>
+    <nz-switch [(ngModel)]="isNewVersion" (ngModelChange)="onNewVersionClick()"></nz-switch>
+
     <span class="text-lg pl-4 pr-2">Service: </span>
     <nz-select [nzOptionOverflowSize]="services.length" [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedService" (ngModelChange)="changeSelectedService($event); applyFilter()" nzSize="large">
       @for (service of services; track service) {
@@ -41,126 +44,130 @@
   <!--#endregion-->
 
 </div>
-
+<!--
 @switch (selectedTab) {
-  @case(0) {
-    <!--#region: Overall metrics for admin-->
-    <div class="dashboard-content-wrapper bg-gray-50">
-      @if(privacyData && privacyData.length > 0) {
-      <div class="grid grid-cols-6 gap-2 mb-2">
-        <div class="col-span-6 p-4">
-          <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500">
-            @if(role === 'admin' && selectedService === 'all') {
-            <div class="col-span-1 pt-2 pb-4 bg-red-400 h-[17rem] relative">
-              <span nz-icon nzType="info-circle" nzTheme="fill" class="absolute right-3 top-2 cursor-help text-2xl" nz-tooltip="Displays total pending requests that needs actioning. Clicking on the number would display the datatable in a modal."></span>
-                <div class="mb-4 flex flex-col items-center h-full text-white">
-                  <div class="text-xl flex-none font-bold">Pending requests</div>
-                  <div class="text-[1rem] font-semibold text-center pt-1 leading-4">Needs action from service owners</div>
-                  <div class="text-8xl font-bold mt-auto cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">{{requestStats.pending}}</div>
-                </div>
-            </div>
-            <div class="col-span-3 py-2 relative">
-              @if(requestStats.pending > 0) {
-                <span nz-icon nzType="info-circle" nzTheme="fill" class="absolute right-3 top-2 cursor-help text-2xl z-20" nz-tooltip="Top 5 services that hold pending requests, by how many count? Click on the corresponding service bars to view the data."></span>
-                <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full z-10" (chartClick)="onChartClickEvent($event, tableModal)"></div>
-              } @else {
-                <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
-                  <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
-                </div>
-              }
-            </div>
-          } @else {
-            <div class="col-span-1">
-              <div class="col-span-1 pt-2 pb-4 bg-red-400 h-[17rem]">
-                <div class="mb-4 flex flex-col items-center h-full text-white">
-                  <div class="text-xl flex-none font-bold">Pending requests</div>
-                  <div class="text-[1rem] font-semibold text-center pt-1 leading-4">Needs action from service owners</div>
-                  <div class="text-8xl font-bold mt-auto cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">{{requestStats.pending}}</div>
+  @case(0) { -->
+    @if(isNewVersion) {
+
+    } @else {
+      <div class="dashboard-content-wrapper bg-gray-50">
+        @if(privacyData && privacyData.length > 0) {
+        <div class="grid grid-cols-6 gap-2 mb-2">
+          <div class="col-span-6 p-4">
+            <div class="grid grid-cols-6 gap-1 rounded border-t-2 border-l-2 border-b-2 border-gray-500">
+              @if(role === 'coordinator' && selectedService === 'all') {
+              <div class="col-span-1 pt-2 pb-4 bg-blue-600 h-[17rem] relative">
+                <span nz-icon nzType="info-circle" nzTheme="fill" class="absolute right-3 top-2 cursor-help text-2xl" nz-tooltip="Displays total pending requests that needs actioning. Clicking on the number would display the datatable in a modal."></span>
+                  <div class="mb-4 flex flex-col items-center h-full text-white">
+                    <div class="text-xl flex-none font-bold">Pending requests</div>
+                    <div class="text-[1rem] font-semibold text-center pt-1 leading-4">Needs action from service owners</div>
+                    <div class="text-8xl font-bold mt-auto cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">{{requestStats.pending}}</div>
+                  </div>
+              </div>
+              <div class="col-span-3 py-2 relative">
+                @if(requestStats.pending > 0) {
+                  <span nz-icon nzType="info-circle" nzTheme="fill" class="absolute right-3 top-2 cursor-help text-2xl z-20" nz-tooltip="Top 5 services that hold pending requests, by how many count? Click on the corresponding service bars to view the data."></span>
+                  <div echarts [options]="pendingRequestsByServiceOwnerChartOption" class="h-full z-10" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+                } @else {
+                  <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
+                    <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="col-span-1">
+                <div class="col-span-1 pt-2 pb-4 bg-red-400 h-[17rem]">
+                  <div class="mb-4 flex flex-col items-center h-full text-white">
+                    <div class="text-xl flex-none font-bold">Pending requests</div>
+                    <div class="text-[1rem] font-semibold text-center pt-1 leading-4">Needs action from service owners</div>
+                    <div class="text-8xl font-bold mt-auto cursor-pointer" (click)="onStatsClickEvent('Pending', tableModal)" (keypress)="onStatsClickEvent('Pending', tableModal)">{{requestStats.pending}}</div>
+                  </div>
                 </div>
               </div>
+              <div class="col-span-3 py-2">
+                @if(requestStats.pending > 0) {
+                  <div echarts [options]="requestAgingForServiceOwnerChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+                } @else {
+                  <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
+                    <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
+                  </div>
+                }
+              </div>
+            }
+              <div class="col-span-2 rounded border-r-2 py-2 border-gray-500">
+                @if(isSLADataUnavailable()) {
+                  <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
+                    <nz-empty nzNotFoundContent="SLA data is not available for the selected filter"></nz-empty>
+                  </div>
+                } @else {
+                <div echarts [options]="slaStatusChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+                }
+              </div>
             </div>
-            <div class="col-span-3 py-2">
+          </div>
+          <div class="col-span-2 p-3">
+            <!-- Request type distribution chart for Pending requests -->
+            <div class="card rounded border-2 border-gray-500 p-3">
               @if(requestStats.pending > 0) {
-                <div echarts [options]="requestAgingForServiceOwnerChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
-              } @else {
-                <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
-                  <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
-                </div>
-              }
-            </div>
-          }
-            <div class="col-span-2 rounded border-r-2 py-2 border-gray-500">
-              @if(isSLADataUnavailable()) {
-                <div class="dnf-wrapper h-full flex flex-col w-full justify-center align-middle">
-                  <nz-empty nzNotFoundContent="SLA data is not available for the selected filter"></nz-empty>
-                </div>
-              } @else {
-              <div echarts [options]="slaStatusChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
-              }
+              <div class="card-body">
+                <div echarts [options]="requestTypeChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
+              </div>
+            } @else {
+              <div class="dnf-wrapper">
+                <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
+              </div>
+            }
             </div>
           </div>
-        </div>
-        <div class="col-span-2 p-3">
-          <!-- Request type distribution chart for Pending requests -->
-          <div class="card rounded border-2 border-gray-500 p-3">
-            @if(requestStats.pending > 0) {
-            <div class="card-body">
-              <div echarts [options]="requestTypeChartOption" class="h-full" (chartClick)="onChartClickEvent($event, tableModal)"></div>
-            </div>
-          } @else {
-            <div class="dnf-wrapper">
-              <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
-            </div>
-          }
-          </div>
-        </div>
-        <div class="col-span-4 p-3">
-          <!-- Barchart of pending request count by CurrentStage -->
-          <div class="card rounded border-2 border-gray-500 p-3 h-full">
-          @if(requestStats.pending > 0) {
-            <div class="card-body">
-              <div echarts [options]="pendingRequestsByCurrentStageChartOption" (chartClick)="onChartClickEvent($event, tableModal)" class="h-full"></div>
-            </div>
-          } @else {
-            <div class="dnf-wrapper">
-              <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
-            </div>
-          }
-        </div>
-        </div>
-        <div class="col-span-6 p-3">
-          <!-- Heatmap of service owners against current stage for pending requests -->
-          <div class="card rounded border-2 border-gray-500 p-3">
-
+          <div class="col-span-4 p-3">
+            <!-- Barchart of pending request count by CurrentStage -->
+            <div class="card rounded border-2 border-gray-500 p-3 h-full">
             @if(requestStats.pending > 0) {
               <div class="card-body">
-              @if(role === 'admin' && selectedService === 'all') {
-              <div echarts [options]="serviceOwnerByCurrentStageChartOption" class="h-full"  (chartClick)="onChartClickEvent($event, tableModal)"></div>
-              } @else {
-              <div echarts [options]="serviceOwnerSubtasksCreatedTimeLineChartOption" class="h-full"  (chartClick)="onChartClickEvent($event, tableModal)"></div>
-              }
+                <div echarts [options]="pendingRequestsByCurrentStageChartOption" (chartClick)="onChartClickEvent($event, tableModal)" class="h-full"></div>
+              </div>
+            } @else {
+              <div class="dnf-wrapper">
+                <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
+              </div>
+            }
+          </div>
+          </div>
+          <div class="col-span-6 p-3">
+            <!-- Heatmap of service owners against current stage for pending requests -->
+            <div class="card rounded border-2 border-gray-500 p-3">
+
+              @if(requestStats.pending > 0) {
+                <div class="card-body">
+                @if(role === 'coordinator' && selectedService === 'all') {
+                <div echarts [options]="serviceOwnerByCurrentStageChartOption" class="h-full"  (chartClick)="onChartClickEvent($event, tableModal)"></div>
+                } @else {
+                <div echarts [options]="serviceOwnerSubtasksCreatedTimeLineChartOption" class="h-full"  (chartClick)="onChartClickEvent($event, tableModal)"></div>
+                }
+              </div>
+            } @else {
+              <div class="dnf-wrapper">
+                <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
+              </div>
+            }
             </div>
-          } @else {
-            <div class="dnf-wrapper">
-              <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
-            </div>
-          }
           </div>
         </div>
+        } @else {
+        <!-- Display No data in a tailwind formatted center box -->
+        <div class="flex flex-col h-[80vh] w-full items-center justify-center">
+          <nz-empty nzNotFoundContent="Data not found. Please retry with another filter"></nz-empty>
+        </div>
+        }
       </div>
-      } @else {
-      <!-- Display No data in a tailwind formatted center box -->
-      <div class="flex flex-col h-[80vh] w-full items-center justify-center">
-        <nz-empty nzNotFoundContent="Data not found. Please retry with another filter"></nz-empty>
-      </div>
-      }
-    </div>
+    }
+    <!--#region: Overall metrics for coordinator-->
     <!--#endregion-->
-  }
+  <!-- }
   @case (1) {
     <span class="text-3xl font-bold">Completed metrics</span>
   }
-}
+} -->
 
 <ng-template #tableModal let-ref="modelRef">
   <tracing [dataForModal]="modalData" [displayCols]="modalCols" [pageSizeLimit]="modalPageSize"></tracing>

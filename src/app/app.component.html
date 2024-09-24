@@ -23,10 +23,10 @@
     <div class="p-2 bg-gray-500 text-white border rounded absolute left-[75%] -top-5">
       <span class="mr-2">Role: </span>
       <nz-select [(ngModel)]="role" (ngModelChange)="changeRole($event)">
-        <nz-option nzValue="admin" nzLabel="Administrator"></nz-option>
+        <nz-option nzValue="coordinator" nzLabel="Coordinator"></nz-option>
         <nz-option nzValue="service-owner" nzLabel="Service owner"></nz-option>
       </nz-select>
-      @if(role !== 'admin') {
+      @if(role !== 'coordinator') {
       <span class="mx-2">Service owner: </span>
       <nz-select [(ngModel)]="selectedServiceOwner" (ngModelChange)="changeServiceOwner($event)">
         @for (service of serviceOwners; track service.value) {

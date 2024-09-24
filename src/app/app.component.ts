@@ -9,7 +9,7 @@ import { ActivatedRoute } from '@angular/router';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  role = "admin";
+  role = "coordinator";
   isCollapsed = false;
   serviceOwners: { value: string, label: string }[] = [];
 
@@ -31,9 +31,9 @@ export class AppComponent {
   }
 
   changeRole(selectedRole: string) {
-    this.role = selectedRole || "admin";
+    this.role = selectedRole || "coordinator";
     if (this.role === "service-owner") {
-      this.selectedServiceOwner = this.serviceOwners[0].value;
+      this.selectedServiceOwner = this.authService.serviceOwner;
     }
     this.authService.setRole(this.role);
   }

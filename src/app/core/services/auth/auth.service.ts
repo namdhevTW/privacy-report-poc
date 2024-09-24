@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
 })
 export class AuthService {
 
-  role = "admin";
+  role = "coordinator";
   serviceOwner = "service-1";
 
   roleChangeSubject: Subject<string> = new Subject<string>();
