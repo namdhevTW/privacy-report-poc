@@ -18,8 +18,8 @@
 
     <!-- Service Dropdown -->
     @if(role === 'coordinator') {
-    <!-- <span class="text-lg pl-4 pr-2">New version: </span>
-    <nz-switch [(ngModel)]="isNewVersion" (ngModelChange)="onNewVersionClick()"></nz-switch> -->
+    <span class="text-lg pl-4 pr-2">New version (WIP)</span>
+    <nz-switch [(ngModel)]="isNewVersion" (ngModelChange)="onNewVersionClick()"></nz-switch>
 
     <span class="text-lg pl-4 pr-2">Service: </span>
     <nz-select [nzOptionOverflowSize]="services.length" [nzDropdownMatchSelectWidth]="false" [(ngModel)]="selectedService" (ngModelChange)="changeSelectedService($event); applyFilter()" nzSize="large">
@@ -48,7 +48,141 @@
 @switch (selectedTab) {
   @case(0) { -->
     @if(isNewVersion) {
+      @if(role === 'coordinator') {
+      <div class="bg-slate-100 p-4">
+        <nz-row [nzGutter]="[10, 10]" class="border-2">
+          <nz-col class="gutter-row m-auto">
+            <span class="pl-4 text-xl font-semibold">
+              Total pending requests
+            </span>
+            <ngx-charts-number-card
+             [view]="[300, 200]"
+             cardColor="#fff"
+             [results]="[{name: 'requests need action', value: requestStats.pending}]"
+             bandColor="#dc2626"
+             >Total pending requests</ngx-charts-number-card>
+          </nz-col>
+          <nz-col class="gutter-row m-auto">
+            <span class="pl-4 text-xl font-semibold">
+              Most contributing service
+            </span>
+            <ngx-charts-number-card
+            [view]="[300, 200]"
+             cardColor="#fff"
+             [results]="[{name: requestStats.topServiceContributingToPending, value: requestStats.topServicePendingCount}]"
+             bandColor="#1e40af"
+             ></ngx-charts-number-card>
+          </nz-col>
+          <nz-col class="gutter-row m-auto">
+            <span class="pl-4 text-xl font-semibold">
+              Most contributing stage
+            </span>
+            <ngx-charts-number-card
+            [view]="[300, 200]"
+             cardColor="#fff"
+             [results]="[{name: requestStats.topCurrentStageContributingToPending, value: requestStats.topCurrentStagePendingCount}]"
+             bandColor="#a16207"
+             ></ngx-charts-number-card>
+          </nz-col>
+          <nz-col class="gutter-row m-auto">
+            <span class="pl-4 text-xl font-semibold">
+              Total Exceeded SLA
+            </span>
+            <ngx-charts-number-card
+            [view]="[300, 200]"
+             cardColor="#fff"
+             [results]="[{name: '# of pending requests', value: requestStats.exceededSLA}]"
+             bandColor="#be185d"
+             ></ngx-charts-number-card>
+          </nz-col>
+          <nz-col class="gutter-row m-auto">
+            <span class="pl-4 text-xl font-semibold">
+              Total Met SLA
+            </span>
+            <ngx-charts-number-card
+            [view]="[300, 200]"
+            cardColor="#fff"
+            [results]="[{name: '# of pending requests', value: requestStats.meetsSLA}]"
+            bandColor="#059669"
+            ></ngx-charts-number-card>
+          </nz-col>
+        </nz-row>
+        <nz-row [nzGutter]="[10, 10]" class="py-10">
+          <nz-col class="gutter-row border-2">
+            <span class="pl-4 text-xl font-semibold">
+              Top 5 service owner contribution with SLA Status
+            </span>
+            @if (top5ServiceOwnersWithSLAStatusChartOption.results.length > 0) {
+              <ngx-charts-bar-horizontal-stacked
+                [view]="[700, 400]"
+                [scheme]="top5ServiceOwnersWithSLAStatusChartOption.colorScheme!"
+                [results]="top5ServiceOwnersWithSLAStatusChartOption.results"
+                roundBarEdges="true"
+                [xAxis]="true"
+                [yAxis]="true"
+                [legend]="true"
+                [showXAxisLabel]="true"
+                [showYAxisLabel]="true"
+                [xAxisLabel]="top5ServiceOwnersWithSLAStatusChartOption.xAxisLabel!"
+                [yAxisLabel]="top5ServiceOwnersWithSLAStatusChartOption.yAxisLabel!"
+                [showGridLines]="true"
+                [showDataLabel]="true"
+                (select)="onChartClickEvent($event, tableModal)"
+              >
+              </ngx-charts-bar-horizontal-stacked>
+            } @else {
+              <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
+            }
+          </nz-col>
+          <nz-col class="gutter-row ml-auto border-2">
+            <span class="pl-4 text-xl font-semibold">
+              Top 10 current stage contribution with SLA Status
+            </span>
+            @if (top10CurrentStagesWithSLAStatusChartOption.results.length > 0) {
+              <ngx-charts-bar-vertical-stacked
+                [view]="[900, 400]"
+                [scheme]="top10CurrentStagesWithSLAStatusChartOption.colorScheme!"
+                [results]="top10CurrentStagesWithSLAStatusChartOption.results"
+                [xAxis]="true"
+                [yAxis]="true"
+                [legend]="true"
+                [showXAxisLabel]="true"
+                [showYAxisLabel]="true"
+                xAxis
+                [xAxisLabel]="top10CurrentStagesWithSLAStatusChartOption.xAxisLabel!"
+                [yAxisLabel]="top10CurrentStagesWithSLAStatusChartOption.yAxisLabel!"
+                [showGridLines]="true"
+                [showDataLabel]="true"
+                (select)="onChartClickEvent($event, tableModal)"
+              >
+              </ngx-charts-bar-vertical-stacked>
+            } @else {
+              <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
+            }
+          </nz-col>
+        </nz-row>
+        <nz-row [nzGutter]="[10,10]" class="border-2">
+          <span class="pl-4 text-xl font-semibold">
+            Heatmap between current stage and service-owners
+          </span>
+          <nz-col class="gutter-row">
+            <ngx-charts-heat-map
+              [view]="[1600, 500]"
+              [xAxis]="true"
+              [yAxis]="true"
+              [animations]="true"
+              [legend]="true"
+              [scheme]="heatmapColorScheme"
+              [max]="10"
+              [results]="currentStageServiceOwnerHeatMapChartOption"
+            >
+            </ngx-charts-heat-map>
+          </nz-col>
+        </nz-row>
+      </div>
+      } @else {
 
+      }
     } @else {
       <div class="dashboard-content-wrapper bg-gray-50">
         @if(privacyData && privacyData.length > 0) {

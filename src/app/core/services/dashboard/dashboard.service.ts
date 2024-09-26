@@ -6,6 +6,10 @@ import { EChartsOption } from 'echarts';
 import { IPrivacyRequestStats } from '@app/core/models/interfaces/privacy-request-stats';
 import { IServiceMapping } from '@app/core/models/interfaces/service-mapping';
 import { SeriesNames, SLAChartLabels, SLAStatusColors } from '@core/models/enums/chart-helper-enums';
+import * as lo from 'lodash';
+
+import { NgxBarChartOption, NgxHeatMapChartOption } from '@app/core/models/interfaces/chart-helper';
+import { ScaleType } from '@swimlane/ngx-charts';
 
 @Injectable({
   providedIn: 'root'
@@ -41,6 +45,10 @@ export class DashboardService {
       meetsSLA: data.filter(d => this.calculateMeetsSLA(selectedServiceOwner, d)).length,
       nearingSLA: data.filter(d => this.calculateNearingSLA(selectedServiceOwner, d)).length,
       exceededSLA: data.filter(d => this.calculateExceedsSLA(selectedServiceOwner, d)).length,
+      topServiceContributingToPending: this.getTopServiceOwnersWithPendingRequests(data).map(d => d.name)[0],
+      topServicePendingCount: this.getTopServiceOwnersWithPendingRequests(data).reduce((acc, curr) => acc + curr.value, 0),
+      topCurrentStageContributingToPending: this.getTopCurrentStageWithPendingRequests(data).map(d => d.name)[0],
+      topCurrentStagePendingCount: this.getTopCurrentStageWithPendingRequests(data).reduce((acc, curr) => acc + curr.value, 0),
     };
     return totals;
   }
@@ -684,6 +692,144 @@ export class DashboardService {
 
   // #endregion
 
+  // #region new code
+  fetchTop5ServiceOwnersWithPendingRequestsWithSLAStatusStack(data: IPrivacyData[]): NgxBarChartOption {
+    // Step 1: Classify each request based on SLA Compliance
+    const classifiedRequests = lo.map(data, (request) => {
+      const slaDays = parseInt(request.slaDays, 10);
+      let slaCompliance = 'Meets SLA';
+
+      if (slaDays <= 0) {
+        slaCompliance = 'Exceeds SLA';
+      } else if (slaDays > 0 && slaDays <= 7) {
+        slaCompliance = 'Nearing SLA';
+      }
+
+      return {
+        ...request,
+        slaCompliance
+      };
+    });
+
+    // Step 2: Group by serviceOwner and count SLA compliance categories
+    const groupedByOwner = lo.chain(classifiedRequests)
+      .groupBy('serviceOwner')
+      .map((requests, serviceOwner) => {
+        const slaCounts = lo.countBy(requests, 'slaCompliance');
+        return {
+          name: this.serviceMapping.filter(svc => svc.value == serviceOwner)[0].name,
+          series: [
+            { name: 'Exceeds SLA', value: slaCounts['Exceeds SLA'] || 0 },
+            { name: 'Nearing SLA', value: slaCounts['Nearing SLA'] || 0 },
+            { name: 'Meets SLA', value: slaCounts['Meets SLA'] || 0 }
+          ]
+        };
+      })
+      .value();
+
+    // Step 3: Sort by total pending requests and take top 5 service owners
+    const sortedOwners = lo.orderBy(groupedByOwner, (owner) => {
+      return lo.sumBy(owner.series, 'value');
+    }, ['desc']);
+
+    const top5ServiceOwners = lo.take(sortedOwners, 5);
+
+    // Step 4: Create the chart options
+    const chartData: NgxBarChartOption = {
+      colorScheme: {
+        name: '',
+        selectable: false,
+        group: ScaleType.Ordinal,
+        domain: [SLAStatusColors.ExceedsSLA, SLAStatusColors.NearingSLA, SLAStatusColors.MeetsSLA]  // Colors for Exceeds, Nearing, and Meets SLA
+      },
+      results: top5ServiceOwners,
+      xAxisLabel: 'Pending Requests Count',
+      yAxisLabel: 'Service Owners'
+    };
+
+    return chartData;
+  }
+
+  fetchTop10CurrentStagesWithPendingRequestsWithSLAStatusStack(data: IPrivacyData[]): NgxBarChartOption {
+    // Step 1: Classify each request based on SLA Compliance
+    const classifiedRequests = lo.map(data, (request) => {
+      const slaDays = parseInt(request.slaDays, 10);
+      let slaCompliance = 'Meets SLA';
+
+      if (slaDays <= 0) {
+        slaCompliance = 'Exceeds SLA';
+      } else if (slaDays > 0 && slaDays <= 7) {
+        slaCompliance = 'Nearing SLA';
+      }
+
+      return {
+        ...request,
+        slaCompliance
+      };
+    });
+
+    // Step 2: Group by currentStage and count SLA compliance categories
+    const groupedByStages = lo.chain(classifiedRequests)
+      .groupBy('currentStage')
+      .map((requests, currentStage) => {
+        const slaCounts = lo.countBy(requests, 'slaCompliance');
+        return {
+          name: currentStage,
+          series: [
+            { name: 'Exceeds SLA', value: slaCounts['Exceeds SLA'] || 0 },
+            { name: 'Nearing SLA', value: slaCounts['Nearing SLA'] || 0 },
+            { name: 'Meets SLA', value: slaCounts['Meets SLA'] || 0 }
+          ]
+        };
+      })
+      .value();
+
+    // Step 3: Sort by total pending requests and take top 5 current stages
+    const sortedStages = lo.orderBy(groupedByStages, (owner) => {
+      return lo.sumBy(owner.series, 'value');
+    }, ['desc']);
+
+    const top10CurrentStages = lo.take(sortedStages, 10);
+
+    // Step 4: Create the chart options
+    const chartData: NgxBarChartOption = {
+      colorScheme: {
+        name: '',
+        selectable: false,
+        group: ScaleType.Ordinal,
+        domain: [SLAStatusColors.ExceedsSLA, SLAStatusColors.NearingSLA, SLAStatusColors.MeetsSLA]  // Colors for Exceeds, Nearing, and Meets SLA
+      },
+      results: top10CurrentStages,
+      yAxisLabel: 'Pending Requests Count',
+      xAxisLabel: 'Current Stages'
+    };
+
+    return chartData;
+  }
+
+  fetchCurrentStageServiceOwnerHeatMapChartOption(data: IPrivacyData[]): NgxHeatMapChartOption[] {
+    // Step 1: Group by currentStage, then by serviceOwner
+    const groupedData = lo.groupBy(data, 'currentStage');
+
+    // Step 2: Transform the grouped data into ngx-charts heatmap format
+    const heatmapData: NgxHeatMapChartOption[] = lo.map(groupedData, (requestsForStage, currentStage) => {
+      const serviceOwnerCounts = lo.countBy(requestsForStage, 'serviceOwner');
+
+      const series = lo.map(serviceOwnerCounts, (count, serviceOwner) => ({
+        name: serviceOwner,
+        value: count
+      }));
+
+      return {
+        name: currentStage,  // The current stage
+        series: series       // The array of service owners with their pending request counts
+      };
+    });
+
+    return heatmapData;
+  }
+  // #endregion
+
   // #region private functions
   private getFontBasedStyle(fntSize = 12, align = 'center'): any {
     return {
@@ -743,30 +889,6 @@ export class DashboardService {
   private getTopCurrentStageWithPendingRequests(data: IPrivacyData[]): { value: number, name: string }[] {
     const currentStages = data
       .filter(d => d.currentStage !== 'Completed' && d.currentStage !== 'Rejected')
-      .map(d => d.currentStage)
-      .reduce((acc, curr) => {
-        acc[curr] = (acc[curr] || 0) + 1;
-        return acc;
-      }, {} as { [key: string]: number });
-
-    return Object.keys(currentStages).sort((a, b) => currentStages[b] - currentStages[a]).slice(0, 5).map(key => ({ name: key, value: currentStages[key] }));
-  }
-
-  private getTopServiceExceedingSLA(data: IPrivacyData[]): { value: number, name: string }[] {
-    const serviceOwners = data
-      .filter(d => this.calculateExceedsSLA('all', d))
-      .map(d => d.serviceOwner)
-      .reduce((acc, curr) => {
-        acc[curr] = (acc[curr] || 0) + 1;
-        return acc;
-      }, {} as { [key: string]: number });
-
-    return Object.keys(serviceOwners).sort((a, b) => serviceOwners[b] - serviceOwners[a]).slice(0, 5).map(key => ({ name: key, value: serviceOwners[key] }));
-  }
-
-  private getTopCurrentDataExceedingSLA(data: IPrivacyData[]): { value: number, name: string }[] {
-    const currentStages = data
-      .filter(d => this.calculateExceedsSLA('all', d))
       .map(d => d.currentStage)
       .reduce((acc, curr) => {
         acc[curr] = (acc[curr] || 0) + 1;

@@ -6,6 +6,8 @@ import { AuthService } from '@app/core/services/auth/auth.service';
 import { NzDatePickerComponent } from 'ng-zorro-antd/date-picker';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { SeriesNames, SLAChartLabels } from '@app/core/models/enums/chart-helper-enums';
+import { Color, ScaleType } from '@swimlane/ngx-charts';
+import { NgxBarChartOption, NgxHeatMapChartOption } from '@app/core/models/interfaces/chart-helper';
 
 @Component({
   selector: 'dashboard',
@@ -24,6 +26,10 @@ export class DashboardComponent {
     meetsSLA: 0,
     nearingSLA: 0,
     exceededSLA: 0,
+    topServiceContributingToPending: '',
+    topServicePendingCount: 0,
+    topCurrentStageContributingToPending: '',
+    topCurrentStagePendingCount: 0
   };
 
   services: { value: string, label: string }[] = [];
@@ -57,8 +63,22 @@ export class DashboardComponent {
   pendingRequestsByCurrentStageChartOption: EChartsOption = {};
   serviceOwnerByCurrentStageChartOption: EChartsOption = {};
   serviceOwnerSubtasksCreatedTimeLineChartOption: EChartsOption = {};
+  top5ServiceOwnersWithSLAStatusChartOption: NgxBarChartOption = {
+    results: []
+  };
+  top10CurrentStagesWithSLAStatusChartOption: NgxBarChartOption = {
+    results: []
+  }
+  currentStageServiceOwnerHeatMapChartOption: NgxHeatMapChartOption[] = [];
 
   pendingStatsCardData: { title: string, value: number }[] = [];
+
+  heatmapColorScheme: Color = {
+    name: "heatmapColorChartGrGYR",
+    selectable: true,
+    group: ScaleType.Ordinal,
+    domain: ['#059669', '#ca8a04', '#dc2626']
+  }
 
   _dateRangeControl: any;
 
@@ -188,11 +208,10 @@ export class DashboardComponent {
   }
 
   onNewVersionClick(): void {
-    if (this.isNewVersion) {
-
-    } else {
-      this.applyFilter();
-    }
+    // if (this.isNewVersion) {
+    // } else {
+    //   this.applyFilter();
+    // }
   }
 
   onChartClickEvent(event: ECElementEvent, templateRef: TemplateRef<{}>): void {
@@ -275,6 +294,10 @@ export class DashboardComponent {
     this.serviceOwnerByCurrentStageChartOption = this.dashboardService.fetchServiceOwnerAndCurrentStageMapChartOption(this.privacyData);
     this.pendingRequestsByCurrentStageChartOption = this.dashboardService.fetchPendingRequestsByCurrentStageBarChartOption(this.privacyData);
     this.pendingRequestsByServiceOwnerChartOption = this.dashboardService.fetchPendingRequestsDistributionByServiceOwner(this.privacyData, this.selectedService);
+
+    this.top5ServiceOwnersWithSLAStatusChartOption = this.dashboardService.fetchTop5ServiceOwnersWithPendingRequestsWithSLAStatusStack(this.privacyData);
+    this.top10CurrentStagesWithSLAStatusChartOption = this.dashboardService.fetchTop10CurrentStagesWithPendingRequestsWithSLAStatusStack(this.privacyData);
+    this.currentStageServiceOwnerHeatMapChartOption = this.dashboardService.fetchCurrentStageServiceOwnerHeatMapChartOption(this.privacyData);
     if (this.selectedService !== 'all') {
       this.requestAgingForServiceOwnerChartOption = this.dashboardService.fetchServiceOwnerBasedRequestAgingBarChartOption(this.privacyData, this.selectedService);
       this.serviceOwnerSubtasksCreatedTimeLineChartOption = this.dashboardService.fetchSubtasksCreatedTimeChartOptions(this.privacyData, this.selectedService, this.selectedStartDate, this.selectedEndDate);

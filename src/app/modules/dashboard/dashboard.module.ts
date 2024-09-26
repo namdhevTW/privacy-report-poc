@@ -15,8 +15,8 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TracingModule } from "@modules/tracing/tracing.module";
 import { NgxChartsModule } from '@swimlane/ngx-charts';
-import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 
 @NgModule({
   declarations: [

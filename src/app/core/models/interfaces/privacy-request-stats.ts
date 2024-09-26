@@ -6,4 +6,8 @@ export interface IPrivacyRequestStats {
   meetsSLA: number;
   nearingSLA: number;
   exceededSLA: number;
+  topServiceContributingToPending: string;
+  topServicePendingCount: number;
+  topCurrentStageContributingToPending: string
+  topCurrentStagePendingCount: number;
 }
