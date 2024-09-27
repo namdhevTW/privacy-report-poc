@@ -50,7 +50,7 @@
     @if(isNewVersion) {
       @if(role === 'coordinator') {
       <div class="bg-slate-100 p-4">
-        <nz-row [nzGutter]="[10, 10]" class="border-2">
+        <nz-row [nzGutter]="[10, 10]" class="border-2 pt-4">
           <nz-col class="gutter-row m-auto">
             <span class="pl-4 text-xl font-semibold">
               Total pending requests
@@ -107,14 +107,13 @@
             ></ngx-charts-number-card>
           </nz-col>
         </nz-row>
-        <nz-row [nzGutter]="[10, 10]" class="py-10">
-          <nz-col class="gutter-row border-2">
+        <nz-row class="py-10">
+          <nz-col class="border-2" nzSpan="11">
             <span class="pl-4 text-xl font-semibold">
-              Top 5 service owner contribution with SLA Status
+              Top 5 service owner contributions
             </span>
             @if (top5ServiceOwnersWithSLAStatusChartOption.results.length > 0) {
               <ngx-charts-bar-horizontal-stacked
-                [view]="[700, 400]"
                 [scheme]="top5ServiceOwnersWithSLAStatusChartOption.colorScheme!"
                 [results]="top5ServiceOwnersWithSLAStatusChartOption.results"
                 roundBarEdges="true"
@@ -134,13 +133,12 @@
               <nz-empty nzNotFoundContent="There are no pending requests for the applied filter"></nz-empty>
             }
           </nz-col>
-          <nz-col class="gutter-row ml-auto border-2">
+          <nz-col class="border-2" nzSpan="12"  nzOffset="1">
             <span class="pl-4 text-xl font-semibold">
               Top 10 current stage contribution with SLA Status
             </span>
             @if (top10CurrentStagesWithSLAStatusChartOption.results.length > 0) {
               <ngx-charts-bar-vertical-stacked
-                [view]="[900, 400]"
                 [scheme]="top10CurrentStagesWithSLAStatusChartOption.colorScheme!"
                 [results]="top10CurrentStagesWithSLAStatusChartOption.results"
                 [xAxis]="true"
@@ -161,13 +159,12 @@
             }
           </nz-col>
         </nz-row>
-        <nz-row [nzGutter]="[10,10]" class="border-2">
+        <nz-row class="border-2">
           <span class="pl-4 text-xl font-semibold">
             Heatmap between current stage and service-owners
           </span>
-          <nz-col class="gutter-row">
+          <nz-col nzSpan="24" class="h-80">
             <ngx-charts-heat-map
-              [view]="[1600, 500]"
               [xAxis]="true"
               [yAxis]="true"
               [animations]="true"
